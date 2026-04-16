@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -31,20 +31,20 @@ public class TrainerController {
         return  trainerService.getAll();
     }
 
-    @GetMapping("/id")
+    @GetMapping("/{id}")
     public ResponseEntity<Trainer> getTrainerById(@PathVariable Long id){
         return  trainerService.findTrainer(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/id")
+    @PutMapping("/{id}")
     public ResponseEntity<Trainer> updatedTrainerById(@PathVariable Long id, @Valid @RequestBody Trainer trainer) {
         Trainer updatedTrainer = trainerService.updateTrainer(id, trainer);
         return ResponseEntity.ok(updatedTrainer); //No usamos un try porque vamos autilizar @ControllerAdvincer para las excepciones.
     }
 
-    @DeleteMapping("/id")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrainer(@PathVariable Long id) {
         if (trainerService.findTrainer(id).isEmpty()) {
             return ResponseEntity.notFound().build();
