@@ -147,7 +147,7 @@ src/main/java/com/inditex/gym_lorza/
 Trainer (1) ──── (*) Activity
 ```
 
-Un entrenador puede tener múltiples actividades asignadas.
+Un entrenador puede tener múltiples actividades asignadas. Test.
 
 ---
 
