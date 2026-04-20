@@ -1,5 +1,6 @@
 package com.inditex.gym_lorza.service;
 
+import com.inditex.gym_lorza.exception.UserNotFoundException;
 import com.inditex.gym_lorza.model.User;
 import com.inditex.gym_lorza.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class UserService {
 
     public User updateUser(Long id, User updatedUser) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id " + id));
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         existingUser.setName(updatedUser.getName());
         existingUser.setSurname(updatedUser.getSurname());
