@@ -1,6 +1,6 @@
 package com.inditex.gym_lorza.service;
 
-import com.inditex.gym_lorza.exception.TrainerNotFoundException;
+import com.inditex.gym_lorza.exception.ObjectNotFoundException;
 import com.inditex.gym_lorza.model.Trainer;
 import com.inditex.gym_lorza.repository.TrainerRepository;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,7 @@ public class TrainerService {
 
     public Trainer updateTrainer(Long id, Trainer updatedTrainer) {
         Trainer existingTrainer = trainerRepository.findById(id)
-                .orElseThrow(() -> new TrainerNotFoundException(id));
+                .orElseThrow(() -> new ObjectNotFoundException("entrenadora", id));
 
         existingTrainer.setName(updatedTrainer.getName());
         existingTrainer.setDni(updatedTrainer.getDni());
