@@ -8,33 +8,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    @ExceptionHandler(ObjectNotFoundException.class)
+    public ResponseEntity<String> handleObjectNotFound(ObjectNotFoundException exception){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
     }
 
     @ExceptionHandler(PaymentRequiredException.class)
-    public ResponseEntity<String> handlePayment(PaymentRequiredException ex) {
-        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(ex.getMessage());
+    public ResponseEntity<String> handlePayment(PaymentRequiredException exception) {
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(exception.getMessage());
     }
 
     @ExceptionHandler(UserAlreadyEnrolledException.class)
-    public ResponseEntity<String> handleAlreadyEnrolled(UserAlreadyEnrolledException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    public ResponseEntity<String> handleAlreadyEnrolled(UserAlreadyEnrolledException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
     }
 
     @ExceptionHandler(MaxActivitiesReachedException.class)
-    public ResponseEntity<String> handleMaxActivities(MaxActivitiesReachedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(ActivityNotFoundException.class)
-    public ResponseEntity<String> handleActivityNotFound(ActivityNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(TrainerNotFoundException.class)
-    public ResponseEntity<String> handleTrainerNotFound(TrainerNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<String> handleMaxActivities(MaxActivitiesReachedException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(exception.getMessage());
     }
 }
