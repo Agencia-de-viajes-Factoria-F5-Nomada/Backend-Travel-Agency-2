@@ -1,5 +1,6 @@
 package com.inditex.gym_lorza.service;
 
+import com.inditex.gym_lorza.exception.ObjectNotFoundException;
 import com.inditex.gym_lorza.model.Activity;
 import com.inditex.gym_lorza.repository.ActivityRepository;
 import org.springframework.stereotype.Service;
@@ -34,15 +35,12 @@ public class ActivityService {
 
     public Activity updateActivity(Long id, Activity updatedActivity) {
         Activity existingActivity = activityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Activity not found with id " + id));
-
+                .orElseThrow(() -> new ObjectNotFoundException("actividad", id));
         existingActivity.setTitle(updatedActivity.getTitle());
         existingActivity.setPrice(updatedActivity.getPrice());
         existingActivity.setWeekDay(updatedActivity.getWeekDay());
         existingActivity.setStartHour(updatedActivity.getStartHour());
         existingActivity.setEndHour(updatedActivity.getEndHour());
-        existingActivity.setImage(updatedActivity.getImage());
 
-        return activityRepository.save(existingActivity);
-    }
-}
+        return existingActivity;
+    }  }
