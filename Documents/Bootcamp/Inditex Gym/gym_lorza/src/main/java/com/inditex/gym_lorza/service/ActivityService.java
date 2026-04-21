@@ -1,53 +1,76 @@
 package com.inditex.gym_lorza.service;
 
+import com.inditex.gym_lorza.dto.ActivityRequestDTO;
+import com.inditex.gym_lorza.dto.ActivityResponseDTO;
 import com.inditex.gym_lorza.exception.ObjectNotFoundException;
+import com.inditex.gym_lorza.mapper.ActivityMapper;
 import com.inditex.gym_lorza.model.Activity;
+import com.inditex.gym_lorza.model.Trainer;
 import com.inditex.gym_lorza.repository.ActivityRepository;
+import com.inditex.gym_lorza.repository.TrainerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ActivityService {
 
     private final ActivityRepository activityRepository;
+    private final TrainerRepository trainerRepository;
 
-    public ActivityService(ActivityRepository activityRepository) {
+    public ActivityService(ActivityRepository activityRepository, TrainerRepository trainerRepository) {
         this.activityRepository = activityRepository;
+        this.trainerRepository = trainerRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<Activity> getAll() {
-        return activityRepository.findAll();
+    public List<ActivityResponseDTO> getAll() {
+        return activityRepository.findAll()
+                .stream()
+                .map(ActivityMapper::toDTO)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public Optional<Activity> findActivity(Long id) {
-        return activityRepository.findById(id);
+    public ActivityResponseDTO findActivity(Long id) {
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("actividad", id));
+        return ActivityMapper.toDTO(activity);
     }
 
     @Transactional
-    public Activity addActivity(Activity newActivity) {
-        return activityRepository.save(newActivity);
+    public ActivityResponseDTO addActivity(ActivityRequestDTO dto) {
+        Trainer trainer = resolveTrainer(dto.getTrainerId());
+        Activity activity = ActivityMapper.toEntity(dto, trainer);
+        return ActivityMapper.toDTO(activityRepository.save(activity));
     }
 
     @Transactional
     public void deleteActivity(Long id) {
+        if (!activityRepository.existsById(id)) {
+            throw new ObjectNotFoundException("actividad", id);
+        }
         activityRepository.deleteById(id);
     }
 
     @Transactional
-    public Activity updateActivity(Long id, Activity updatedActivity) {
+    public ActivityResponseDTO updateActivity(Long id, ActivityRequestDTO dto) {
         Activity existingActivity = activityRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("actividad", id));
-        existingActivity.setTitle(updatedActivity.getTitle());
-        existingActivity.setDescription(updatedActivity.getDescription());
-        existingActivity.setPrice(updatedActivity.getPrice());
-        existingActivity.setDate(updatedActivity.getDate());
-        existingActivity.setStartHour(updatedActivity.getStartHour());
-        existingActivity.setEndHour(updatedActivity.getEndHour());
-        return activityRepository.save(existingActivity);
+        Trainer trainer = resolveTrainer(dto.getTrainerId());
+        existingActivity.setTitle(dto.getTitle());
+        existingActivity.setDescription(dto.getDescription());
+        existingActivity.setPrice(dto.getPrice());
+        existingActivity.setDate(dto.getDate());
+        existingActivity.setStartHour(dto.getStartHour());
+        existingActivity.setEndHour(dto.getEndHour());
+        existingActivity.setTrainer(trainer);
+        return ActivityMapper.toDTO(activityRepository.save(existingActivity));
+    }
+
+    private Trainer resolveTrainer(Long trainerId) {
+        return trainerRepository.findById(trainerId)
+                .orElseThrow(() -> new ObjectNotFoundException("entrenadora", trainerId));
     }
 }
