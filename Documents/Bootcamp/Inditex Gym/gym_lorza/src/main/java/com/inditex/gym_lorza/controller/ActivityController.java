@@ -1,6 +1,7 @@
 package com.inditex.gym_lorza.controller;
 
-import com.inditex.gym_lorza.model.Activity;
+import com.inditex.gym_lorza.dto.ActivityRequestDTO;
+import com.inditex.gym_lorza.dto.ActivityResponseDTO;
 import com.inditex.gym_lorza.service.ActivityService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,39 +22,29 @@ public class ActivityController {
     }
 
     @PostMapping
-    public ResponseEntity<Activity> createActivity(@Valid @RequestBody Activity activity) {
-        Activity savedActivity = activityService.addActivity(activity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedActivity);
+    public ResponseEntity<ActivityResponseDTO> createActivity(@Valid @RequestBody ActivityRequestDTO dto) {
+        ActivityResponseDTO saved = activityService.addActivity(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @GetMapping
-    public List<Activity> getAllActivities() {
+    public List<ActivityResponseDTO> getAllActivities() {
         return activityService.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Activity> getActivityById(@PathVariable Long id) {
-        return activityService.findActivity(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ActivityResponseDTO> getActivityById(@PathVariable Long id) {
+        return ResponseEntity.ok(activityService.findActivity(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Activity> updateActivityById(@PathVariable Long id, @Valid @RequestBody Activity activity) {
-        Activity updatedActivity = activityService.updateActivity(id, activity);
-        return ResponseEntity.ok(updatedActivity);
+    public ResponseEntity<ActivityResponseDTO> updateActivityById(@PathVariable Long id, @Valid @RequestBody ActivityRequestDTO dto) {
+        return ResponseEntity.ok(activityService.updateActivity(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteActivity(@PathVariable Long id) {
-        if (activityService.findActivity(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        try {
-            activityService.deleteActivity(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalStateException exception) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+        activityService.deleteActivity(id);
+        return ResponseEntity.noContent().build();
     }
 }
