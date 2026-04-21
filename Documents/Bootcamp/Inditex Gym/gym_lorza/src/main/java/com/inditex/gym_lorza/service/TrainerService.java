@@ -1,12 +1,14 @@
 package com.inditex.gym_lorza.service;
 
+import com.inditex.gym_lorza.dto.TrainerRequestDTO;
+import com.inditex.gym_lorza.dto.TrainerResponseDTO;
 import com.inditex.gym_lorza.exception.ObjectNotFoundException;
+import com.inditex.gym_lorza.mapper.TrainerMapper;
 import com.inditex.gym_lorza.model.Trainer;
 import com.inditex.gym_lorza.repository.TrainerRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TrainerService {
@@ -17,32 +19,38 @@ public class TrainerService {
         this.trainerRepository = trainerRepository;
     }
 
-    public List<Trainer> getAll() {
-        return trainerRepository.findAll();
+    public List<TrainerResponseDTO> getAll() {
+        return trainerRepository.findAll()
+                .stream()
+                .map(TrainerMapper::toDTO)
+                .toList();
     }
 
-    public Optional<Trainer> findTrainer(Long id) {
-        return trainerRepository.findById(id);
+    public TrainerResponseDTO findTrainer(Long id) {
+        Trainer trainer = trainerRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("entrenadora", id));
+        return TrainerMapper.toDTO(trainer);
     }
 
-    public Trainer addTrainer(Trainer newTrainer) {
-        return trainerRepository.save(newTrainer);
+    public TrainerResponseDTO addTrainer(TrainerRequestDTO dto) {
+        Trainer trainer = TrainerMapper.toEntity(dto);
+        return TrainerMapper.toDTO(trainerRepository.save(trainer));
     }
 
     public void deleteTrainer(Long id) {
         trainerRepository.deleteById(id);
     }
 
-    public Trainer updateTrainer(Long id, Trainer updatedTrainer) {
+    public TrainerResponseDTO updateTrainer(Long id, TrainerRequestDTO dto) {
         Trainer existingTrainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("entrenadora", id));
 
-        existingTrainer.setName(updatedTrainer.getName());
-        existingTrainer.setDni(updatedTrainer.getDni());
-        existingTrainer.setHiringYear(updatedTrainer.getHiringYear());
-        existingTrainer.setIsHired(updatedTrainer.getIsHired());
-        existingTrainer.setImage(updatedTrainer.getImage());
+        existingTrainer.setName(dto.getName());
+        existingTrainer.setDni(dto.getDni());
+        existingTrainer.setHiringYear(dto.getHiringYear());
+        existingTrainer.setIsHired(dto.getIsHired());
+        existingTrainer.setImage(dto.getImage());
 
-        return trainerRepository.save(existingTrainer);
+        return TrainerMapper.toDTO(trainerRepository.save(existingTrainer));
     }
 }

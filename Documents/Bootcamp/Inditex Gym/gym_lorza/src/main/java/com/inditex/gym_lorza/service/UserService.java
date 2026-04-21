@@ -1,12 +1,14 @@
 package com.inditex.gym_lorza.service;
 
+import com.inditex.gym_lorza.dto.UserRequestDTO;
+import com.inditex.gym_lorza.dto.UserResponseDTO;
 import com.inditex.gym_lorza.exception.ObjectNotFoundException;
+import com.inditex.gym_lorza.mapper.UserMapper;
 import com.inditex.gym_lorza.model.User;
 import com.inditex.gym_lorza.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -17,33 +19,39 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public List<User> getAll() {
-        return userRepository.findAll();
+    public List<UserResponseDTO> getAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toDTO)
+                .toList();
     }
 
-    public Optional<User> findUser(Long id) {
-        return userRepository.findById(id);
+    public UserResponseDTO findUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("usuaria", id));
+        return UserMapper.toDTO(user);
     }
 
-    public User addUser(User newUser) {
-        return userRepository.save(newUser);
+    public UserResponseDTO addUser(UserRequestDTO dto) {
+        User user = UserMapper.toEntity(dto);
+        return UserMapper.toDTO(userRepository.save(user));
     }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
 
-    public User updateUser(Long id, User updatedUser) {
+    public UserResponseDTO updateUser(Long id, UserRequestDTO dto) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("usuaria", id));
 
-        existingUser.setName(updatedUser.getName());
-        existingUser.setSurname(updatedUser.getSurname());
-        existingUser.setDni(updatedUser.getDni());
-        existingUser.setStartYear(updatedUser.getStartYear());
-        existingUser.setIsActive(updatedUser.getIsActive());
-        existingUser.setImage(updatedUser.getImage());
+        existingUser.setName(dto.getName());
+        existingUser.setSurname(dto.getSurname());
+        existingUser.setDni(dto.getDni());
+        existingUser.setStartYear(dto.getStartYear());
+        existingUser.setIsActive(dto.getIsActive());
+        existingUser.setImage(dto.getImage());
 
-        return userRepository.save(existingUser);
+        return UserMapper.toDTO(userRepository.save(existingUser));
     }
 }
