@@ -221,7 +221,7 @@ Representa a un miembro del gimnasio.
 | `dni` | `String` | DNI (único) | ✅ |
 | `startYear` | `Integer` | Año de alta en el gimnasio | ✅ |
 | `isActive` | `Boolean` | Estado activo / inactivo | ✅ |
-| `image` | `String` | URL de imagen de perfil | ❌ |
+
 
 ### 🧑‍🏫 Trainer
 
@@ -233,8 +233,7 @@ Representa a un entrenador del gimnasio.
 | `name` | `String` | Nombre del entrenador | ✅ |
 | `dni` | `String` | DNI (único) | ✅ |
 | `hiringYear` | `Integer` | Año de contratación | ✅ |
-| `isHired` | `Boolean` | Si está contratado actualmente | ✅ |
-| `image` | `String` | URL de imagen de perfil | ❌ |
+| `isHired` | `Boolean` | Si está contratado actualmente | ✅ ||
 | `activities` | `List<Activity>` | Actividades que imparte | — |
 
 ### 🏃 Activity
@@ -249,7 +248,6 @@ Representa una clase o actividad del gimnasio.
 | `weekDay` | `Integer` | Día de la semana (`0`=Lun · `1`=Mar · ... · `6`=Dom) | ✅ |
 | `startHour` | `LocalTime` | Hora de inicio (formato `HH:mm`) | ✅ |
 | `endHour` | `LocalTime` | Hora de fin (formato `HH:mm`) | ✅ |
-| `image` | `String` | URL de imagen de la actividad | ❌ |
 | `trainer` | `Trainer` | Entrenador asignado (FK) | ✅ |
 
 ### 🔗 Diagrama de Relaciones
