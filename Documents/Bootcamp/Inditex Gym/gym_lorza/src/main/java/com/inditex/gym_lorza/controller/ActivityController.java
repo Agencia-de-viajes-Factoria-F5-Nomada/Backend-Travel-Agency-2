@@ -2,7 +2,9 @@ package com.inditex.gym_lorza.controller;
 
 import com.inditex.gym_lorza.dto.ActivityRequestDTO;
 import com.inditex.gym_lorza.dto.ActivityResponseDTO;
+import com.inditex.gym_lorza.dto.UserResponseDTO;
 import com.inditex.gym_lorza.service.ActivityService;
+import com.inditex.gym_lorza.service.EnrollmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +18,11 @@ import java.util.List;
 public class ActivityController {
 
     private final ActivityService activityService;
+    private final EnrollmentService enrollmentService;
 
-    public ActivityController(ActivityService activityService) {
+    public ActivityController(ActivityService activityService, EnrollmentService enrollmentService) {
         this.activityService = activityService;
+        this.enrollmentService = enrollmentService;
     }
 
     @PostMapping
@@ -30,6 +34,11 @@ public class ActivityController {
     @GetMapping
     public List<ActivityResponseDTO> getAllActivities() {
         return activityService.getAll();
+    }
+
+    @GetMapping("/future")
+    public List<ActivityResponseDTO> getFutureActivities() {
+        return activityService.findFutureActivities();
     }
 
     @GetMapping("/{id}")
@@ -46,5 +55,22 @@ public class ActivityController {
     public ResponseEntity<Void> deleteActivity(@PathVariable Long id) {
         activityService.deleteActivity(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{activityId}/users/{userId}")
+    public ResponseEntity<Void> enrollUser(@PathVariable Long activityId, @PathVariable Long userId) {
+        enrollmentService.enrollUser(activityId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{activityId}/users/{userId}")
+    public ResponseEntity<Void> unenrollUser(@PathVariable Long activityId, @PathVariable Long userId) {
+        enrollmentService.unenrollUser(activityId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{activityId}/users")
+    public List<UserResponseDTO> getEnrolledUsers(@PathVariable Long activityId) {
+        return enrollmentService.getEnrolledUsers(activityId);
     }
 }

@@ -35,6 +35,14 @@ public class UserService {
         return UserMapper.toDTO(user);
     }
 
+    @Transactional(readOnly = true)
+    public List<UserResponseDTO> findActiveUsers() {
+        return userRepository.findByIsActiveTrue()
+                .stream()
+                .map(UserMapper::toDTO)
+                .toList();
+    }
+
     @Transactional
     public UserResponseDTO addUser(UserRequestDTO dto) {
         User user = UserMapper.toEntity(dto);

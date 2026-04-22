@@ -1,7 +1,9 @@
 package com.inditex.gym_lorza.controller;
 
+import com.inditex.gym_lorza.dto.ActivityResponseDTO;
 import com.inditex.gym_lorza.dto.TrainerRequestDTO;
 import com.inditex.gym_lorza.dto.TrainerResponseDTO;
+import com.inditex.gym_lorza.service.ActivityService;
 import com.inditex.gym_lorza.service.TrainerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +18,11 @@ import java.util.List;
 public class TrainerController {
 
     private final TrainerService trainerService;
+    private final ActivityService activityService;
 
-    public TrainerController(TrainerService trainerService) {
+    public TrainerController(TrainerService trainerService, ActivityService activityService) {
         this.trainerService = trainerService;
+        this.activityService = activityService;
     }
 
     @PostMapping
@@ -32,9 +36,19 @@ public class TrainerController {
         return trainerService.getAll();
     }
 
+    @GetMapping("/active")
+    public List<TrainerResponseDTO> getActiveTrainers() {
+        return trainerService.findActiveTrainers();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TrainerResponseDTO> getTrainerById(@PathVariable Long id) {
         return ResponseEntity.ok(trainerService.findTrainer(id));
+    }
+
+    @GetMapping("/{id}/activities")
+    public List<ActivityResponseDTO> getTrainerActivities(@PathVariable Long id) {
+        return activityService.findByTrainerId(id);
     }
 
     @PutMapping("/{id}")

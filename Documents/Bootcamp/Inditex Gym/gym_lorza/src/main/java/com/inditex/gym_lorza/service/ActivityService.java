@@ -3,6 +3,7 @@ package com.inditex.gym_lorza.service;
 import com.inditex.gym_lorza.dto.ActivityRequestDTO;
 import com.inditex.gym_lorza.dto.ActivityResponseDTO;
 import com.inditex.gym_lorza.exception.ObjectNotFoundException;
+import com.inditex.gym_lorza.exception.TrainerNotActiveException;
 import com.inditex.gym_lorza.mapper.ActivityMapper;
 import com.inditex.gym_lorza.model.Activity;
 import com.inditex.gym_lorza.model.Trainer;
@@ -11,6 +12,7 @@ import com.inditex.gym_lorza.repository.TrainerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -39,6 +41,30 @@ public class ActivityService {
         return ActivityMapper.toDTO(activity);
     }
 
+    @Transactional(readOnly = true)
+    public List<ActivityResponseDTO> findFutureActivities() {
+        return activityRepository.findByDateAfterOrderByDateAsc(LocalDate.now())
+                .stream()
+                .map(ActivityMapper::toDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ActivityResponseDTO> findByUserId(Long userId) {
+        return activityRepository.findByUsersId(userId)
+                .stream()
+                .map(ActivityMapper::toDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ActivityResponseDTO> findByTrainerId(Long trainerId) {
+        return activityRepository.findByTrainerId(trainerId)
+                .stream()
+                .map(ActivityMapper::toDTO)
+                .toList();
+    }
+
     @Transactional
     public ActivityResponseDTO addActivity(ActivityRequestDTO dto) {
         Trainer trainer = resolveTrainer(dto.getTrainerId());
@@ -65,12 +91,17 @@ public class ActivityService {
         existingActivity.setDate(dto.getDate());
         existingActivity.setStartHour(dto.getStartHour());
         existingActivity.setEndHour(dto.getEndHour());
+        existingActivity.setImage(dto.getImage());
         existingActivity.setTrainer(trainer);
         return ActivityMapper.toDTO(activityRepository.save(existingActivity));
     }
 
     private Trainer resolveTrainer(Long trainerId) {
-        return trainerRepository.findById(trainerId)
+        Trainer trainer = trainerRepository.findById(trainerId)
                 .orElseThrow(() -> new ObjectNotFoundException("entrenadora", trainerId));
+        if (!trainer.getIsHired()) {
+            throw new TrainerNotActiveException(trainerId);
+        }
+        return trainer;
     }
 }

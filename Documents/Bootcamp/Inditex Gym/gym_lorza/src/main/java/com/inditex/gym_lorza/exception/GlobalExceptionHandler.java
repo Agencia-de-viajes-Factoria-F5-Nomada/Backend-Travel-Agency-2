@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ObjectNotFoundException.class)
-    public ResponseEntity<String> handleObjectNotFound(ObjectNotFoundException exception){
+    public ResponseEntity<String> handleObjectNotFound(ObjectNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
     }
 
@@ -26,5 +26,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxActivitiesReachedException.class)
     public ResponseEntity<String> handleMaxActivities(MaxActivitiesReachedException exception) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(exception.getMessage());
+    }
+
+    @ExceptionHandler(TrainerNotActiveException.class)
+    public ResponseEntity<String> handleTrainerNotActive(TrainerNotActiveException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
     }
 }

@@ -35,6 +35,14 @@ public class TrainerService {
         return TrainerMapper.toDTO(trainer);
     }
 
+    @Transactional(readOnly = true)
+    public List<TrainerResponseDTO> findActiveTrainers() {
+        return trainerRepository.findByIsHiredTrue()
+                .stream()
+                .map(TrainerMapper::toDTO)
+                .toList();
+    }
+
     @Transactional
     public TrainerResponseDTO addTrainer(TrainerRequestDTO dto) {
         Trainer trainer = TrainerMapper.toEntity(dto);
