@@ -13,5 +13,6 @@ public class UserResponseDTO {
     private String dni;
     private Integer startYear;
     private Boolean isActive;
+    private Boolean annualFeePaid;
     private String image;
 }
