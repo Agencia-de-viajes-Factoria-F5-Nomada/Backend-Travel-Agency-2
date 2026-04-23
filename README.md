@@ -13,7 +13,7 @@
 [![Hibernate](https://img.shields.io/badge/Hibernate-ORM-59666C?style=for-the-badge&logo=hibernate&logoColor=white)]()
 [![Lombok](https://img.shields.io/badge/Lombok-enabled-pink?style=for-the-badge)]()
 
-[🇬🇧 English version](#-gym-lorza-api-1)
+[🇬🇧 English version](#english)
 
 [Descripción](#-descripción) · [Características](#-características) · [Stack Tecnológico](#️-stack-tecnológico) · [Requisitos](#-requisitos-previos) · [Instalación](#-instalación) · [Estructura](#️-estructura-del-proyecto) · [Entidades](#️-entidades-y-modelo-de-datos) · [Endpoints](#-endpoints) · [Reglas de Negocio](#-reglas-de-negocio) · [Ejemplos](#-ejemplos-de-uso) · [Contribuir](#-contribuir)
 
@@ -394,7 +394,7 @@ Hecho con ❤️ por **Grupo 1 — Inditex Gym Bootcamp**
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.5-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 
-[🇪🇸 Versión en español](#️-gym-lorza-api)
+[🇪🇸 Versión en español](#spanish)
 
 [Description](#-description-1) · [Features](#-features) · [Tech Stack](#️-tech-stack) · [Prerequisites](#-prerequisites) · [Installation](#-installation-1) · [Project Structure](#️-project-structure) · [Entities](#️-entities-and-data-model) · [Endpoints](#-endpoints-1) · [Business Rules](#️-business-rules) · [Examples](#-usage-examples) · [Contributing](#-contributing)
 
