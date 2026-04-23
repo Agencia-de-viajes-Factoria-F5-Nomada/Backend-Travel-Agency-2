@@ -13,6 +13,7 @@ public class UserMapper {
         user.setDni(dto.getDni());
         user.setStartYear(dto.getStartYear());
         user.setIsActive(dto.getIsActive());
+        user.setAnnualFeePaid(false);
         user.setImage(dto.getImage());
         return user;
     }
@@ -25,6 +26,7 @@ public class UserMapper {
         dto.setDni(user.getDni());
         dto.setStartYear(user.getStartYear());
         dto.setIsActive(user.getIsActive());
+        dto.setAnnualFeePaid(user.getAnnualFeePaid());
         dto.setImage(user.getImage());
         return dto;
     }
