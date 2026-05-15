@@ -5,8 +5,8 @@ import com.inditex.g1_agencia_viajes.dto.LoginResponse;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import com.inditex.g1_agencia_viajes.security.JwtUtil;
+import jakarta.validation.Valid;
 import org.mindrot.jbcrypt.BCrypt;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,18 +17,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/authentication")
 public class AuthenticationController {
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    public AuthenticationController(EmployeeRepository employeeRepository, JwtUtil jwtUtil) {
+        this.employeeRepository = employeeRepository;
+        this.jwtUtil = jwtUtil;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        Employee employee = employeeRepository.findById(loginRequest.getId()).orElse(null);
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+        Employee employee = employeeRepository.findByEmail(loginRequest.getEmail()).orElse(null);
 
         if (employee != null && BCrypt.checkpw(loginRequest.getPassword(), employee.getPassword())) {
-            String token = jwtUtil.crearToken(employee.getName(), employee.getEmployeeId(), employee.getRole());
+            String token = jwtUtil.crearToken(employee.getEmail(), employee.getEmployeeId(), employee.getRole());
             return ResponseEntity.ok(new LoginResponse(token, employee.getEmployeeId(), employee.getName(), employee.getSurname(), employee.getRole()));
         }
 

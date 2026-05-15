@@ -1,13 +1,15 @@
 package com.inditex.g1_agencia_viajes.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class LoginRequest {
-    @NotNull(message = "El ID del empleado es obligatorio")
-    private Long id;
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "Formato de email inválido")
+    private String email;
+
     @NotBlank(message = "La contraseña es obligatoria")
     private String password;
 }

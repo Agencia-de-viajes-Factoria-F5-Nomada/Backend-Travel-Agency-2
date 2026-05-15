@@ -9,12 +9,20 @@ import com.inditex.g1_agencia_viajes.model.Role;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
 public class JwtFilter implements Filter {
+
+    private final Algorithm algoritmo;
+
+    public JwtFilter(@Value("${jwt.secret}") String secret) {
+        this.algoritmo = Algorithm.HMAC256(secret);
+    }
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
@@ -25,15 +33,6 @@ public class JwtFilter implements Filter {
         String path = req.getRequestURI();
 
         if (path.equals("/api/authentication/login")
-                || path.startsWith("/api/users")
-                || path.startsWith("/api/hotels")
-                || path.startsWith("/api/buses")
-                || path.startsWith("/api/drivers")
-                || path.startsWith("/api/travels")
-                || path.startsWith("/api/bookings")
-                || path.startsWith("/api/offers")
-                || path.startsWith("/api/employees")
-                || path.startsWith("/api/trip-segments")
                 || path.startsWith("/api-docs")
                 || path.startsWith("/swagger-ui")) {
             chain.doFilter(request, response);
@@ -50,7 +49,6 @@ public class JwtFilter implements Filter {
         String token = authHeader.substring(7);
 
         try {
-            Algorithm algoritmo = Algorithm.HMAC256("your_secret_password");
             JWTVerifier verifier = JWT.require(algoritmo).withIssuer("agencia-viajes").build();
             DecodedJWT jwt = verifier.verify(token);
 

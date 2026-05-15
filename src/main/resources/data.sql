@@ -14,11 +14,12 @@ TRUNCATE TABLE users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- EMPLOYEES
-INSERT INTO employees (gender, name, surname, work_hour, hired, password, role) VALUES
-('MALE', 'Carlos', 'Pérez', 40, true, '123456', 'ADMIN'),
-('FEMALE', 'Ana', 'Sánchez', 35, true, '123456', 'EDITOR'),
-('FEMALE', 'Sofía', 'Oliveira', 40, true, '123456', 'VIEWER'),
-('MALE', 'David', 'Thimotheo', 20, true, '123456', 'VIEWER');
+-- Contraseña de todos los empleados: 123456 (hash BCrypt generado offline)
+INSERT INTO employees (gender, name, surname, email, work_hour, hired, password, role) VALUES
+('MALE', 'Carlos', 'Pérez', 'carlos@nomada.es', 40, true, '$2a$10$8X.MsojZ2enH58GWd9AdlOMWs7XuPzcixfUccJL.3zCTizOsggiTO', 'ADMIN'),
+('FEMALE', 'Ana', 'Sánchez', 'ana@nomada.es', 35, true, '$2a$10$8X.MsojZ2enH58GWd9AdlOMWs7XuPzcixfUccJL.3zCTizOsggiTO', 'EDITOR'),
+('FEMALE', 'Sofía', 'Oliveira', 'sofia@nomada.es', 40, true, '$2a$10$8X.MsojZ2enH58GWd9AdlOMWs7XuPzcixfUccJL.3zCTizOsggiTO', 'VIEWER'),
+('MALE', 'David', 'Thimotheo', 'david@nomada.es', 20, true, '$2a$10$8X.MsojZ2enH58GWd9AdlOMWs7XuPzcixfUccJL.3zCTizOsggiTO', 'VIEWER');
 
 -- OFFERS
 INSERT INTO offers (offer_id, discount_percentage, start_date, end_date) VALUES

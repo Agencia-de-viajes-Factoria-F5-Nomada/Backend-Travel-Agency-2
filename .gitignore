@@ -37,3 +37,4 @@ build/
 /AUDITORIA.pdf
 /docs/
 /docs/AUDIT.md
+.env

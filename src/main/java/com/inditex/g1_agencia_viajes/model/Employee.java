@@ -3,6 +3,7 @@ package com.inditex.g1_agencia_viajes.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -26,6 +27,11 @@ public class Employee {
     @NotBlank(message = "El nombre es obligatorio")
     @Column(name = "name")
     private String name;
+
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "Formato de email inválido")
+    @Column(unique = true)
+    private String email;
 
     @NotBlank(message = "El apellido es obligatorio")
     @Column(name = "surname")
