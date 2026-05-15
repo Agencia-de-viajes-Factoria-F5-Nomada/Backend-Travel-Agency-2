@@ -5,27 +5,33 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
+import com.inditex.g1_agencia_viajes.exception.BusFullException;
 import com.inditex.g1_agencia_viajes.exception.MinorWithoutTutorException;
 import com.inditex.g1_agencia_viajes.exception.PastTravelException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.exception.TravelNotAvailableException;
 import com.inditex.g1_agencia_viajes.mapper.BookingMapper;
 import com.inditex.g1_agencia_viajes.model.Booking;
+import com.inditex.g1_agencia_viajes.model.Bus;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.model.Travel;
+import com.inditex.g1_agencia_viajes.model.TripSegment;
 import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.BookingRepository;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
+import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +44,7 @@ public class BookingService {
     private final HotelService hotelService;
     private final BookingPricingService bookingPricingService;
     private final BookingMapper bookingMapper;
+    private final TripSegmentRepository tripSegmentRepository;
 
     @Transactional(readOnly = true)
     public List<BookingResponseDTO> findAll() {
@@ -81,6 +88,17 @@ public class BookingService {
         if (availablePlaces < numPass) {
             throw new TravelNotAvailableException(travel.getId());
         }
+
+        int totalPassengers = bookingRepository.countTotalPassengersByTravelId(travel.getId()) + numPass;
+        List<TripSegment> segments = tripSegmentRepository.findByTravelId(travel.getId());
+        Set<Long> seenBusIds = new HashSet<>();
+        for (TripSegment segment : segments) {
+            Bus bus = segment.getBus();
+            if (bus != null && seenBusIds.add(bus.getId()) && bus.getCapacity() < totalPassengers) {
+                throw new BusFullException(bus.getId(), bus.getLicensePlate());
+            }
+        }
+
         if (travel.getHotel() != null) {
             hotelService.reducirPlazas(travel.getHotel().getId(), numPass);
         }
@@ -153,6 +171,17 @@ public class BookingService {
         Travel travel = booking.getTravel();
         if (travel != null && (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now()))) {
             throw new PastTravelException(travel.getId());
+        }
+        if (travel != null) {
+            int totalPassengers = bookingRepository.countTotalPassengersByTravelId(travel.getId()) + 1;
+            List<TripSegment> segments = tripSegmentRepository.findByTravelId(travel.getId());
+            Set<Long> seenBusIds = new HashSet<>();
+            for (TripSegment segment : segments) {
+                Bus bus = segment.getBus();
+                if (bus != null && seenBusIds.add(bus.getId()) && bus.getCapacity() < totalPassengers) {
+                    throw new BusFullException(bus.getId(), bus.getLicensePlate());
+                }
+            }
         }
         if (travel != null && travel.getHotel() != null) {
             hotelService.reducirPlazas(travel.getHotel().getId(), 1);
