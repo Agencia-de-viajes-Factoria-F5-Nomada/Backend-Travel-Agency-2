@@ -131,7 +131,7 @@ class UserServiceTest {
         List<UserResponseDTO> result = userService.getAll();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getEmail()).isEqualTo("user@test.com");
+        assertThat(result.getFirst().getEmail()).isEqualTo("user@test.com");
     }
 
     @Test

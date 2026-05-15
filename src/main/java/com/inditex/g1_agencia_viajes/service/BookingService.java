@@ -6,6 +6,7 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.MinorWithoutTutorException;
+import com.inditex.g1_agencia_viajes.exception.PastTravelException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.exception.TravelNotAvailableException;
 import com.inditex.g1_agencia_viajes.mapper.BookingMapper;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
@@ -57,6 +59,11 @@ public class BookingService {
 
         Travel travel = travelRepository.findById(dto.getTravelId())
                 .orElseThrow(() -> new ResourceNotFoundException("l viaje", dto.getTravelId()));
+
+        if (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now())) {
+            throw new PastTravelException(travel.getId());
+        }
+
         booking.setTravel(travel);
 
         if (dto.getEmployeeId() != null) {
@@ -96,6 +103,9 @@ public class BookingService {
         if (dto.getTravelId() != null) {
             Travel travel = travelRepository.findById(dto.getTravelId())
                     .orElseThrow(() -> new ResourceNotFoundException("l viaje", dto.getTravelId()));
+            if (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now())) {
+                throw new PastTravelException(travel.getId());
+            }
             booking.setTravel(travel);
         }
 
@@ -141,6 +151,9 @@ public class BookingService {
         validateMinorHasTutor(user);
 
         Travel travel = booking.getTravel();
+        if (travel != null && (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now()))) {
+            throw new PastTravelException(travel.getId());
+        }
         if (travel != null && travel.getHotel() != null) {
             hotelService.reducirPlazas(travel.getHotel().getId(), 1);
         }

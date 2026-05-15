@@ -111,7 +111,7 @@ class OfferServiceTest {
         OfferRequestDTO dto = new OfferRequestDTO();
         assertThatThrownBy(() -> offerService.update(99L, dto))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Oferta no encontrada");
+                .hasMessageContaining("No hemos podido encontrar la información de la oferta");
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.TravelRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TravelResponseDTO;
+import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.TravelMapper;
 import com.inditex.g1_agencia_viajes.model.Hotel;
 import com.inditex.g1_agencia_viajes.model.Offer;
@@ -144,7 +145,7 @@ class TravelServiceTest {
 
         assertThatThrownBy(() -> travelService.getById(99L))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Viaje no encontrado");
+                .hasMessageContaining("No hemos podido encontrar la información de el viaje, con el id: 99");
     }
 
     @Test
@@ -185,8 +186,8 @@ class TravelServiceTest {
         requestDTO.setHotelId(99L);
 
         assertThatThrownBy(() -> travelService.create(requestDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Hotel no encontrado");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("No hemos podido encontrar la información de el hotel, con el id: 99");
     }
 
     @Test
@@ -227,8 +228,8 @@ class TravelServiceTest {
         when(travelRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> travelService.update(99L, new TravelRequestDTO()))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Viaje no encontrado");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("No hemos podido encontrar la información de el viaje, con el id: 99");
     }
 
     @Test
@@ -246,7 +247,7 @@ class TravelServiceTest {
         when(travelRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> travelService.delete(99L))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Viaje no encontrado");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("No hemos podido encontrar la información de el viaje, con el id: 99");
     }
 }
