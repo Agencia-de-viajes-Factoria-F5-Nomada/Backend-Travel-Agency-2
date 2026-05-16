@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BusServiceImplTest {
+class BusServiceTest {
 
     @Mock
     private BusRepository busRepository;
@@ -32,7 +32,7 @@ class BusServiceImplTest {
     @Mock
     private BusMapper busMapper;
 
-    private BusServiceImpl busService;
+    private BusService busService;
 
     private Bus bus;
     private BusRequestDTO requestDTO;
@@ -40,7 +40,7 @@ class BusServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        busService = new BusServiceImpl(busRepository, busMapper);
+        busService = new BusService(busRepository, busMapper);
 
         bus = new Bus();
         bus.setId(1L);
