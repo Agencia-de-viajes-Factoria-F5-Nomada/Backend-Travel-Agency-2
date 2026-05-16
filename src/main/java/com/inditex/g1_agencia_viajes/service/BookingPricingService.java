@@ -38,7 +38,7 @@ public class BookingPricingService {
             throw new IllegalArgumentException("El tipo de pensión es obligatorio");
         }
         Travel travel = travelRepository.findById(request.getTravelId())
-                .orElseThrow(() -> new ResourceNotFoundException("el viaje", + request.getTravelId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el viaje", request.getTravelId()));
         List<User> customers = loadUsers(request.getCustomerIds());
         return buildQuote(travel, request.getTypeBoard(), customers, request.getIsGroup());
     }
