@@ -44,6 +44,21 @@ public class BookingPricingService {
     }
 
     @Transactional(readOnly = true)
+    public BookingQuoteResponseDTO generateQuoteFromBooking(Booking booking) {
+        if (booking.getTravel() == null) {
+            throw new ResourceNotFoundException("el viaje", null);
+        }
+        if (booking.getTypeBoard() == null) {
+            throw new IllegalArgumentException("El tipo de pensión es obligatorio");
+        }
+        if (booking.getCustomers() == null || booking.getCustomers().isEmpty()) {
+            throw new IllegalArgumentException("Debes indicar al menos un cliente");
+        }
+        Travel travel = booking.getTravel();
+        return buildQuote(travel, booking.getTypeBoard(), booking.getCustomers(), booking.getIsGroup());
+    }
+
+    @Transactional(readOnly = true)
     public Double calculateTotalPrice(Booking booking) {
         if (booking.getTravel() == null) {
             throw new ResourceNotFoundException("el viaje", null);

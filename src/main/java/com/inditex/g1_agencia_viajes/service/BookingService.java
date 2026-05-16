@@ -23,6 +23,7 @@ import com.inditex.g1_agencia_viajes.repository.TravelRepository;
 import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +46,7 @@ public class BookingService {
     private final BookingPricingService bookingPricingService;
     private final BookingMapper bookingMapper;
     private final TripSegmentRepository tripSegmentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public List<BookingResponseDTO> findAll() {
@@ -106,7 +108,9 @@ public class BookingService {
         travelRepository.save(travel);
 
         booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
-        return bookingMapper.toDTO(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        eventPublisher.publishEvent(new BookingCreatedEvent(saved.getBookingId()));
+        return bookingMapper.toDTO(saved);
     }
 
     @Transactional
@@ -171,7 +175,9 @@ public class BookingService {
         travelRepository.save(newTravel);
 
         booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
-        return bookingMapper.toDTO(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+        eventPublisher.publishEvent(new BookingCreatedEvent(saved.getBookingId()));
+        return bookingMapper.toDTO(saved);
     }
 
     @Transactional
