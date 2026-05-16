@@ -13,6 +13,7 @@ import com.inditex.g1_agencia_viajes.model.*;
 import com.inditex.g1_agencia_viajes.repository.BookingRepository;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
+import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,8 +21,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,6 +54,9 @@ class BookingServiceTest {
     @Mock
     private BookingPricingService bookingPricingService;
 
+    @Mock
+    private TripSegmentRepository tripSegmentRepository;
+
     private BookingMapper bookingMapper;
 
     private BookingService bookingService;
@@ -65,11 +71,13 @@ class BookingServiceTest {
     void setUp() {
         bookingMapper = new BookingMapper();
         bookingService = new BookingService(bookingRepository, userRepository, travelRepository,
-                employeeRepository, hotelService, bookingPricingService, bookingMapper);
+                employeeRepository, hotelService, bookingPricingService, bookingMapper, tripSegmentRepository);
 
         travel = new Travel();
         travel.setId(1L);
         travel.setDestiny("Paris");
+        travel.setStartDate(LocalDate.now().plusDays(30));
+        travel.setEndDate(LocalDate.now().plusDays(35));
         travel.setAvailablePlaces(10);
 
         adultUser = new User();
@@ -141,6 +149,8 @@ class BookingServiceTest {
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
+        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
+        when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(500.0);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 
@@ -167,6 +177,8 @@ class BookingServiceTest {
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
         when(userRepository.findById(3L)).thenReturn(Optional.of(secondAdultUser));
+        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
+        when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(700.0);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 
@@ -220,6 +232,8 @@ class BookingServiceTest {
 
         Travel newTravel = new Travel();
         newTravel.setId(2L);
+        newTravel.setStartDate(LocalDate.now().plusDays(30));
+        newTravel.setEndDate(LocalDate.now().plusDays(35));
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
@@ -285,6 +299,8 @@ class BookingServiceTest {
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
+        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
+        when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
         when(bookingPricingService.calculateTotalPrice(booking)).thenReturn(600.0);
         when(bookingRepository.save(booking)).thenReturn(booking);
 
@@ -306,6 +322,8 @@ class BookingServiceTest {
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
+        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
+        when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
         when(bookingPricingService.calculateTotalPrice(booking)).thenReturn(600.0);
         when(bookingRepository.save(booking)).thenReturn(booking);
 

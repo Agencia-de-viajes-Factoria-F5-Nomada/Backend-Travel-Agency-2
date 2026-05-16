@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface TripSegmentRepository extends JpaRepository<TripSegment, Long> {
 
+    List<TripSegment> findByTravelId(Long travelId);
+
     @Query("SELECT ts FROM TripSegment ts WHERE ts.driver = :driver " +
            "AND ((ts.startTime <= :endTime AND ts.endTime >= :startTime))")
     List<TripSegment> findOverlappingByDriver(
