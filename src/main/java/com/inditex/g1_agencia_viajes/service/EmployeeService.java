@@ -6,6 +6,8 @@ import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,10 +67,9 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
-    public List<EmployeeResponseDTO> getAllEmployees() {
-        return employeeRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+    public Page<EmployeeResponseDTO> getAllEmployees(Pageable pageable) {
+        return employeeRepository.findAll(pageable)
+                .map(this::toResponseDTO);
     }
 
     @Transactional(readOnly = true)

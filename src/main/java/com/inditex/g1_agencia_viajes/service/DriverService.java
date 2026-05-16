@@ -6,6 +6,8 @@ import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.DriverMapper;
 import com.inditex.g1_agencia_viajes.model.Driver;
 import com.inditex.g1_agencia_viajes.repository.DriverRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +32,9 @@ public class DriverService {
     }
 
     @Transactional(readOnly = true)
-    public List<DriverResponseDTO> getAll() {
-        return driverRepository.findAll()
-                .stream()
-                .map(driverMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<DriverResponseDTO> getAll(Pageable pageable) {
+        return driverRepository.findAll(pageable)
+                .map(driverMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -45,11 +45,9 @@ public class DriverService {
     }
 
     @Transactional(readOnly = true)
-    public List<DriverResponseDTO> getActive() {
-        return driverRepository.findByLicenceActive(true)
-                .stream()
-                .map(driverMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<DriverResponseDTO> getActive(Pageable pageable) {
+        return driverRepository.findByLicenceActive(true, pageable)
+                .map(driverMapper::toDTO);
     }
 
     @Transactional

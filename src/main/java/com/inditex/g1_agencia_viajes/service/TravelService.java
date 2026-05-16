@@ -8,6 +8,8 @@ import com.inditex.g1_agencia_viajes.model.Travel;
 import com.inditex.g1_agencia_viajes.repository.HotelRepository;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,27 +33,21 @@ public class TravelService {
     }
 
     @Transactional(readOnly = true)
-    public List<TravelResponseDTO> getAll() {
-        return travelRepository.findByActiveTrue().stream()
-                .map(travelMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<TravelResponseDTO> getAll(Pageable pageable) {
+        return travelRepository.findByActiveTrue(pageable)
+                .map(travelMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<TravelResponseDTO> getAvailable() {
-        return travelRepository.findByActiveTrueAndStartDateAfter(LocalDate.now())
-                .stream()
-                .filter(t -> t.getAvailablePlaces() != null && t.getAvailablePlaces() > 0)
-                .map(travelMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<TravelResponseDTO> getAvailable(Pageable pageable) {
+        return travelRepository.findByActiveTrueAndStartDateAfterAndAvailablePlacesGreaterThan(LocalDate.now(), 0, pageable)
+                .map(travelMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<TravelResponseDTO> getOnSale() {
-        return travelRepository.findBySaleTrueAndActiveTrueAndStartDateAfter(LocalDate.now())
-                .stream()
-                .map(travelMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<TravelResponseDTO> getOnSale(Pageable pageable) {
+        return travelRepository.findBySaleTrueAndActiveTrueAndStartDateAfter(LocalDate.now(), pageable)
+                .map(travelMapper::toDTO);
     }
 
     @Transactional(readOnly = true)

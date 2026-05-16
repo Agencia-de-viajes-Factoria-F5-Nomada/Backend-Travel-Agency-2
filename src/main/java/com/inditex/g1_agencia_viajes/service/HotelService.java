@@ -7,6 +7,8 @@ import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.HotelMapper;
 import com.inditex.g1_agencia_viajes.model.Hotel;
 import com.inditex.g1_agencia_viajes.repository.HotelRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,11 +33,9 @@ public class HotelService {
     }
 
     @Transactional(readOnly = true)
-    public List<HotelResponseDTO> getAll() {
-        return hotelRepository.findAll()
-                .stream()
-                .map(hotelMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<HotelResponseDTO> getAll(Pageable pageable) {
+        return hotelRepository.findAll(pageable)
+                .map(hotelMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -46,19 +46,15 @@ public class HotelService {
     }
 
     @Transactional(readOnly = true)
-    public List<HotelResponseDTO> getActive() {
-        return hotelRepository.findByActive(true)
-                .stream()
-                .map(hotelMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<HotelResponseDTO> getActive(Pageable pageable) {
+        return hotelRepository.findByActive(true, pageable)
+                .map(hotelMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<HotelResponseDTO> getAvailable() {
-        return hotelRepository.findByAvailablePlacesGreaterThan(0)
-                .stream()
-                .map(hotelMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<HotelResponseDTO> getAvailable(Pageable pageable) {
+        return hotelRepository.findByAvailablePlacesGreaterThan(0, pageable)
+                .map(hotelMapper::toDTO);
     }
 
     @Transactional

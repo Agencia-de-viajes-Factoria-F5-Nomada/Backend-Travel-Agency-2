@@ -6,11 +6,11 @@ import com.inditex.g1_agencia_viajes.service.HotelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/hotels")
@@ -31,8 +31,8 @@ public class HotelController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los hoteles")
-    public ResponseEntity<List<HotelResponseDTO>> getAll() {
-        return ResponseEntity.ok(hotelService.getAll());
+    public ResponseEntity<Page<HotelResponseDTO>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(hotelService.getAll(pageable));
     }
 
     @GetMapping("/{id}")
@@ -43,14 +43,14 @@ public class HotelController {
 
     @GetMapping("/active")
     @Operation(summary = "Obtener hoteles activos")
-    public ResponseEntity<List<HotelResponseDTO>> getActive() {
-        return ResponseEntity.ok(hotelService.getActive());
+    public ResponseEntity<Page<HotelResponseDTO>> getActive(Pageable pageable) {
+        return ResponseEntity.ok(hotelService.getActive(pageable));
     }
 
     @GetMapping("/available")
     @Operation(summary = "Obtener hoteles con plazas disponibles")
-    public ResponseEntity<List<HotelResponseDTO>> getAvailable() {
-        return ResponseEntity.ok(hotelService.getAvailable());
+    public ResponseEntity<Page<HotelResponseDTO>> getAvailable(Pageable pageable) {
+        return ResponseEntity.ok(hotelService.getAvailable(pageable));
     }
 
     @PutMapping("/{id}")

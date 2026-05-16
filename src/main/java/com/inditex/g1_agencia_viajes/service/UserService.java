@@ -7,6 +7,8 @@ import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.UserMapper;
 import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,11 +41,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponseDTO> getAll() {
-        return userRepository.findAll()
-                .stream()
-                .map(userMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<UserResponseDTO> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(userMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -54,11 +54,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponseDTO> getActive() {
-        return userRepository.findByActive(true)
-                .stream()
-                .map(userMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<UserResponseDTO> getActive(Pageable pageable) {
+        return userRepository.findByActive(true, pageable)
+                .map(userMapper::toDTO);
     }
 
     @Transactional

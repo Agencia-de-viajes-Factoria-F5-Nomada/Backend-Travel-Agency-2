@@ -6,11 +6,11 @@ import com.inditex.g1_agencia_viajes.service.TravelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/travels")
@@ -25,20 +25,20 @@ public class TravelController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los viajes")
-    public ResponseEntity<List<TravelResponseDTO>> getAll() {
-        return ResponseEntity.ok(travelService.getAll());
+    public ResponseEntity<Page<TravelResponseDTO>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(travelService.getAll(pageable));
     }
 
     @GetMapping("/available")
     @Operation(summary = "Obtener viajes disponibles", description = "Viajes futuros con plazas disponibles")
-    public ResponseEntity<List<TravelResponseDTO>> getAvailable() {
-        return ResponseEntity.ok(travelService.getAvailable());
+    public ResponseEntity<Page<TravelResponseDTO>> getAvailable(Pageable pageable) {
+        return ResponseEntity.ok(travelService.getAvailable(pageable));
     }
 
     @GetMapping("/sale")
     @Operation(summary = "Obtener viajes en oferta")
-    public ResponseEntity<List<TravelResponseDTO>> getOnSale() {
-        return ResponseEntity.ok(travelService.getOnSale());
+    public ResponseEntity<Page<TravelResponseDTO>> getOnSale(Pageable pageable) {
+        return ResponseEntity.ok(travelService.getOnSale(pageable));
     }
 
     @GetMapping("/{id}")

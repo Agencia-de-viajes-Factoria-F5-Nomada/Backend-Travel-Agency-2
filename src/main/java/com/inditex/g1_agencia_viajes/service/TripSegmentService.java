@@ -14,6 +14,8 @@ import com.inditex.g1_agencia_viajes.repository.DriverRepository;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
 import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +34,9 @@ public class TripSegmentService {
     private final TripSegmentMapper tripSegmentMapper;
 
     @Transactional(readOnly = true)
-    public List<TripSegmentResponseDTO> getAll() {
-        return tripSegmentRepository.findAll()
-                .stream()
-                .map(tripSegmentMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<TripSegmentResponseDTO> getAll(Pageable pageable) {
+        return tripSegmentRepository.findAll(pageable)
+                .map(tripSegmentMapper::toDTO);
     }
 
     @Transactional(readOnly = true)

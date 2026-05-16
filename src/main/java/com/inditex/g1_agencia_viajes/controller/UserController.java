@@ -6,11 +6,11 @@ import com.inditex.g1_agencia_viajes.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,8 +31,8 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los usuarios")
-    public ResponseEntity<List<UserResponseDTO>> getAll() {
-        return ResponseEntity.ok(userService.getAll());
+    public ResponseEntity<Page<UserResponseDTO>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(userService.getAll(pageable));
     }
 
     @GetMapping("/{id}")
@@ -43,8 +43,8 @@ public class UserController {
 
     @GetMapping("/active")
     @Operation(summary = "Obtener usuarios activos")
-    public ResponseEntity<List<UserResponseDTO>> getActive() {
-        return ResponseEntity.ok(userService.getActive());
+    public ResponseEntity<Page<UserResponseDTO>> getActive(Pageable pageable) {
+        return ResponseEntity.ok(userService.getActive(pageable));
     }
 
     @PutMapping("/{id}")

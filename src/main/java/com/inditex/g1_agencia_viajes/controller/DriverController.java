@@ -6,11 +6,11 @@ import com.inditex.g1_agencia_viajes.service.DriverService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/drivers")
@@ -31,8 +31,8 @@ public class DriverController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los conductores")
-    public ResponseEntity<List<DriverResponseDTO>> getAll() {
-        return ResponseEntity.ok(driverService.getAll());
+    public ResponseEntity<Page<DriverResponseDTO>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(driverService.getAll(pageable));
     }
 
     @GetMapping("/{id}")
@@ -43,8 +43,8 @@ public class DriverController {
 
     @GetMapping("/active")
     @Operation(summary = "Obtener conductores activos")
-    public ResponseEntity<List<DriverResponseDTO>> getActive() {
-        return ResponseEntity.ok(driverService.getActive());
+    public ResponseEntity<Page<DriverResponseDTO>> getActive(Pageable pageable) {
+        return ResponseEntity.ok(driverService.getActive(pageable));
     }
 
     @PutMapping("/{id}")

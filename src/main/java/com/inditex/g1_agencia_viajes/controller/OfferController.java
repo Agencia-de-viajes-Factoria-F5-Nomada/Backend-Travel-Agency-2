@@ -6,11 +6,11 @@ import com.inditex.g1_agencia_viajes.service.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/offers")
@@ -25,8 +25,8 @@ public class OfferController {
 
     @GetMapping
     @Operation(summary = "Obtener todas las ofertas")
-    public ResponseEntity<List<OfferResponseDTO>> getAll() {
-        return ResponseEntity.ok(offerService.findAll());
+    public ResponseEntity<Page<OfferResponseDTO>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(offerService.findAll(pageable));
     }
 
     @GetMapping("/{id}")

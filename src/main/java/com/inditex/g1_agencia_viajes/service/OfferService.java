@@ -7,6 +7,8 @@ import com.inditex.g1_agencia_viajes.mapper.OfferMapper;
 import com.inditex.g1_agencia_viajes.model.Offer;
 import com.inditex.g1_agencia_viajes.repository.OfferRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +24,9 @@ public class OfferService {
     private final OfferMapper offerMapper;
 
     @Transactional(readOnly = true)
-    public List<OfferResponseDTO> findAll() {
-        return offerRepository.findAll()
-                .stream()
-                .map(offerMapper::toDTO)
-                .collect(Collectors.toList());
+    public Page<OfferResponseDTO> findAll(Pageable pageable) {
+        return offerRepository.findAll(pageable)
+                .map(offerMapper::toDTO);
     }
 
     @Transactional(readOnly = true)

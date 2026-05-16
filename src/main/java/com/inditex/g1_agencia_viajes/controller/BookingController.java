@@ -8,11 +8,11 @@ import com.inditex.g1_agencia_viajes.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -27,8 +27,8 @@ public class BookingController {
 
     @GetMapping
     @Operation(summary = "Obtener todas las reservas")
-    public ResponseEntity<List<BookingResponseDTO>> getAllBookings() {
-        return ResponseEntity.ok(bookingService.findAll());
+    public ResponseEntity<Page<BookingResponseDTO>> getAllBookings(Pageable pageable) {
+        return ResponseEntity.ok(bookingService.findAll(pageable));
     }
 
     @GetMapping("/{id}")

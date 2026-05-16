@@ -24,6 +24,8 @@ import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,8 +51,9 @@ public class BookingService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
-    public List<BookingResponseDTO> findAll() {
-        return bookingMapper.toDTOList(bookingRepository.findAll());
+    public Page<BookingResponseDTO> findAll(Pageable pageable) {
+        return bookingRepository.findAll(pageable)
+                .map(bookingMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
