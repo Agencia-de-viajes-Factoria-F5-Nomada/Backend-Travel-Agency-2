@@ -41,7 +41,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getById(id));
     }
 
-    @GetMapping("/activos")
+    @GetMapping("/active")
     @Operation(summary = "Obtener usuarios activos")
     public ResponseEntity<List<UserResponseDTO>> getActive() {
         return ResponseEntity.ok(userService.getActive());

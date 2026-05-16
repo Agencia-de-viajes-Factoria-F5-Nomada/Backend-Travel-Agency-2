@@ -34,7 +34,7 @@ public class AuthenticationController {
         Employee employee = employeeRepository.findByEmail(loginRequest.getEmail()).orElse(null);
 
         if (employee != null && BCrypt.checkpw(loginRequest.getPassword(), employee.getPassword())) {
-            String token = jwtUtil.crearToken(employee.getEmail(), employee.getEmployeeId(), employee.getRole());
+            String token = jwtUtil.createToken(employee.getEmail(), employee.getEmployeeId(), employee.getRole());
             return ResponseEntity.ok(new LoginResponse(token, employee.getEmployeeId(), employee.getName(), employee.getSurname(), employee.getRole()));
         }
 

@@ -41,13 +41,13 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.getById(id));
     }
 
-    @GetMapping("/activos")
+    @GetMapping("/active")
     @Operation(summary = "Obtener hoteles activos")
     public ResponseEntity<List<HotelResponseDTO>> getActive() {
         return ResponseEntity.ok(hotelService.getActive());
     }
 
-    @GetMapping("/disponibles")
+    @GetMapping("/available")
     @Operation(summary = "Obtener hoteles con plazas disponibles")
     public ResponseEntity<List<HotelResponseDTO>> getAvailable() {
         return ResponseEntity.ok(hotelService.getAvailable());

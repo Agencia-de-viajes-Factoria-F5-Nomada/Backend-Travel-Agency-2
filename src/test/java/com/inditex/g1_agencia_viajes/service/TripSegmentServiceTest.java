@@ -120,6 +120,7 @@ class TripSegmentServiceTest {
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
         when(driverRepository.findById(1L)).thenReturn(Optional.of(driver));
+        when(tripSegmentRepository.findOverlappingByDriver(any(), any(), any())).thenReturn(List.of());
         when(tripSegmentRepository.save(any(TripSegment.class))).thenReturn(tripSegment);
 
         TripSegmentResponseDTO result = tripSegmentService.create(dto);
@@ -145,6 +146,7 @@ class TripSegmentServiceTest {
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
         when(driverRepository.findById(1L)).thenReturn(Optional.of(driver));
+        when(tripSegmentRepository.findOverlappingByDriver(any(), any(), any())).thenReturn(List.of());
         when(tripSegmentRepository.save(any(TripSegment.class))).thenReturn(tripSegment);
 
         TripSegmentResponseDTO result = tripSegmentService.update(1L, dto);

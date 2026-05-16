@@ -38,7 +38,7 @@ public class BookingPricingService {
             throw new IllegalArgumentException("El tipo de pensión es obligatorio");
         }
         Travel travel = travelRepository.findById(request.getTravelId())
-                .orElseThrow(() -> new ResourceNotFoundException("l viaje", + request.getTravelId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el viaje", + request.getTravelId()));
         List<User> customers = loadUsers(request.getCustomerIds());
         return buildQuote(travel, request.getTypeBoard(), customers, request.getIsGroup());
     }
@@ -46,10 +46,10 @@ public class BookingPricingService {
     @Transactional(readOnly = true)
     public Double calculateTotalPrice(Booking booking) {
         if (booking.getTravel() == null) {
-            throw new ResourceNotFoundException("l viaje", null);
+            throw new ResourceNotFoundException("el viaje", null);
         }
         if (booking.getTravel().getId() == null) {
-            throw new ResourceNotFoundException("l viaje", null);
+            throw new ResourceNotFoundException("el viaje", null);
         }
         if (booking.getTypeBoard() == null) {
             throw new IllegalArgumentException("El tipo de pensión es obligatorio");
@@ -58,21 +58,21 @@ public class BookingPricingService {
             throw new IllegalArgumentException("Debes indicar al menos un cliente");
         }
         Travel travel = travelRepository.findById(booking.getTravel().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("l viaje", booking.getTravel().getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el viaje", booking.getTravel().getId()));
         BookingQuoteResponseDTO quote = buildQuote(travel, booking.getTypeBoard(), booking.getCustomers(), booking.getIsGroup());
         return quote.getTotalPrice();
     }
 
     private List<User> loadUsers(List<Long> customerIds) {
-        List<User> users = new ArrayList<>();
-        if (customerIds == null) {
-            return users;
+        if (customerIds == null || customerIds.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        for (Long customerId : customerIds) {
-            User user = userRepository.findById(customerId)
-                    .orElseThrow(() -> new ResourceNotFoundException("l cliente", customerId));
-            users.add(user);
+        List<User> users = userRepository.findAllById(customerIds);
+        for (Long id : customerIds) {
+            if (users.stream().noneMatch(u -> u.getId().equals(id))) {
+                throw new ResourceNotFoundException("el cliente", id);
+            }
         }
         return users;
     }
@@ -86,7 +86,7 @@ public class BookingPricingService {
         }
         Hotel hotel = travel.getHotel();
         if (hotel == null) {
-            throw new ResourceNotFoundException("l hotel", travel.getId());
+            throw new ResourceNotFoundException("el hotel", travel.getId());
         }
 
         BigDecimal basePricePerPassenger = resolveBasePrice(hotel, typeBoard);
@@ -127,7 +127,7 @@ public class BookingPricingService {
     private BigDecimal resolveBasePrice(Hotel hotel, TypeBoard typeBoard) {
         Double price = typeBoard == TypeBoard.FULL ? hotel.getFullBoardPrice() : hotel.getHalfBoardPrice();
         if (price == null) {
-            throw new ResourceNotFoundException("l hotel", hotel.getId());
+            throw new ResourceNotFoundException("el hotel", hotel.getId());
         }
         return BigDecimal.valueOf(price);
     }

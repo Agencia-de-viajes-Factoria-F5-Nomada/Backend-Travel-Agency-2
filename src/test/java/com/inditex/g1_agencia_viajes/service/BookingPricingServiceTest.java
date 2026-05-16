@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,8 +90,7 @@ class BookingPricingServiceTest {
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(adultUser));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(childUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser, childUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -111,7 +111,7 @@ class BookingPricingServiceTest {
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(adultUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -141,7 +141,7 @@ class BookingPricingServiceTest {
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(childUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(childUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -160,7 +160,7 @@ class BookingPricingServiceTest {
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(3L)).thenReturn(Optional.of(pensionerUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(pensionerUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -193,10 +193,7 @@ class BookingPricingServiceTest {
         request.setIsGroup(true);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        for (Long id : customerIds) {
-            User u = customers.get((int)(id - 4L));
-            when(userRepository.findById(id)).thenReturn(Optional.of(u));
-        }
+        when(userRepository.findAllById(any())).thenReturn(customers);
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -256,7 +253,7 @@ class BookingPricingServiceTest {
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(adultUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -276,7 +273,7 @@ class BookingPricingServiceTest {
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(adultUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         assertThatThrownBy(() -> bookingPricingService.quote(request))
                 .isInstanceOf(ResourceNotFoundException.class);

@@ -41,7 +41,7 @@ public class DriverController {
         return ResponseEntity.ok(driverService.getById(id));
     }
 
-    @GetMapping("/activos")
+    @GetMapping("/active")
     @Operation(summary = "Obtener conductores activos")
     public ResponseEntity<List<DriverResponseDTO>> getActive() {
         return ResponseEntity.ok(driverService.getActive());

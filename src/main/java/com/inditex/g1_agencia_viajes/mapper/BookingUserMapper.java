@@ -13,8 +13,9 @@ public class BookingUserMapper {
         if (user == null) return null;
 
         UserResponseDTO dto = new UserResponseDTO();
-        dto.setUserId(user.getId());
-        dto.setFullName(user.getName() + " " + user.getSurname());
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setSurname(user.getSurname());
         dto.setEmail(user.getEmail());
         dto.setDni(user.getDni());
         return dto;

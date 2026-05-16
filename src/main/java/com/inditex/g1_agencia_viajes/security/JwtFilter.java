@@ -17,10 +17,10 @@ import java.io.IOException;
 @Component
 public class JwtFilter implements Filter {
 
-    private final Algorithm algoritmo;
-
-    public JwtFilter(@Value("${jwt.secret}") String secret) {
-        this.algoritmo = Algorithm.HMAC256(secret);
+    private final Algorithm algorithm;
+ 
+     public JwtFilter(@Value("${jwt.secret}") String secret) {
+         this.algorithm = Algorithm.HMAC256(secret);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class JwtFilter implements Filter {
         String token = authHeader.substring(7);
 
         try {
-            JWTVerifier verifier = JWT.require(algoritmo).withIssuer("agencia-viajes").build();
+            JWTVerifier verifier = JWT.require(algorithm).withIssuer("agencia-viajes").build();
             DecodedJWT jwt = verifier.verify(token);
 
             String roleStr = jwt.getClaim("role").asString();

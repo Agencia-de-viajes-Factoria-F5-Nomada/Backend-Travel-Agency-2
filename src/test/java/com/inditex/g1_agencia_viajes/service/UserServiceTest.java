@@ -212,16 +212,17 @@ class UserServiceTest {
 
     @Test
     void delete_ShouldDeleteUser() {
-        when(userRepository.existsById(2L)).thenReturn(true);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
 
         userService.delete(2L);
 
-        verify(userRepository).deleteById(2L);
+        assertThat(user.getActive()).isFalse();
+        verify(userRepository).save(user);
     }
 
     @Test
     void delete_ShouldThrowResourceNotFoundException() {
-        when(userRepository.existsById(99L)).thenReturn(false);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.delete(99L))
                 .isInstanceOf(ResourceNotFoundException.class);

@@ -77,7 +77,7 @@ class UserControllerTest {
     void getActive_ShouldReturn200() throws Exception {
         when(userService.getActive()).thenReturn(List.of(new UserResponseDTO()));
 
-        mockMvc.perform(get("/api/users/activos"))
+        mockMvc.perform(get("/api/users/active"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }

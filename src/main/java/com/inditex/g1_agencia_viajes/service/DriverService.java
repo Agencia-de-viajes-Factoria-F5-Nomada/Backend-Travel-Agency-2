@@ -40,7 +40,7 @@ public class DriverService {
     @Transactional(readOnly = true)
     public DriverResponseDTO getById(Long id) {
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("l conductor", id));
+                .orElseThrow(() -> new ResourceNotFoundException("el conductor", id));
         return driverMapper.toDTO(driver);
     }
 
@@ -55,7 +55,7 @@ public class DriverService {
     @Transactional
     public DriverResponseDTO update(Long id, DriverRequestDTO dto) {
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("l conductor", id));
+                .orElseThrow(() -> new ResourceNotFoundException("el conductor", id));
         if (dto.getName() != null)          driver.setName(dto.getName());
         if (dto.getPhone() != null)         driver.setPhone(dto.getPhone());
         if (dto.getImageUrl() != null)      driver.setImageUrl(dto.getImageUrl());
@@ -67,7 +67,7 @@ public class DriverService {
     @Transactional
     public void delete(Long id) {
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("l conductor", id));
+                .orElseThrow(() -> new ResourceNotFoundException("el conductor", id));
         driver.setActive(false);
         driverRepository.save(driver);
     }

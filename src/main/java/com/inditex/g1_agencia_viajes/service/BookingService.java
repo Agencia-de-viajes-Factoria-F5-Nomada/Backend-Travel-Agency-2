@@ -65,7 +65,7 @@ public class BookingService {
         booking.setIsGroup(dto.getIsGroup());
 
         Travel travel = travelRepository.findById(dto.getTravelId())
-                .orElseThrow(() -> new ResourceNotFoundException("l viaje", dto.getTravelId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
 
         if (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now())) {
             throw new PastTravelException(travel.getId());
@@ -75,7 +75,7 @@ public class BookingService {
 
         if (dto.getEmployeeId() != null) {
             Employee employee = employeeRepository.findById(dto.getEmployeeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("l empleado", dto.getEmployeeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("el empleado", dto.getEmployeeId()));
             booking.setEmployee(employee);
         }
 
@@ -100,7 +100,7 @@ public class BookingService {
         }
 
         if (travel.getHotel() != null) {
-            hotelService.reducirPlazas(travel.getHotel().getId(), numPass);
+            hotelService.reduceCapacity(travel.getHotel().getId(), numPass);
         }
         travel.setAvailablePlaces(availablePlaces - numPass);
         travelRepository.save(travel);
@@ -122,7 +122,7 @@ public class BookingService {
                     (oldTravel.getAvailablePlaces() == null ? 0 : oldTravel.getAvailablePlaces()) + oldPassengerCount);
             travelRepository.save(oldTravel);
             if (oldTravel.getHotel() != null) {
-                hotelService.liberarPlazas(oldTravel.getHotel().getId(), oldPassengerCount);
+                hotelService.releaseCapacity(oldTravel.getHotel().getId(), oldPassengerCount);
             }
         }
 
@@ -165,7 +165,7 @@ public class BookingService {
         }
 
         if (newTravel.getHotel() != null) {
-            hotelService.reducirPlazas(newTravel.getHotel().getId(), newPassengerCount);
+            hotelService.reduceCapacity(newTravel.getHotel().getId(), newPassengerCount);
         }
         newTravel.setAvailablePlaces(availablePlaces - newPassengerCount);
         travelRepository.save(newTravel);
@@ -177,10 +177,10 @@ public class BookingService {
     @Transactional
     public void deleteById(Long id) {
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(" la reserva", id));
+                .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
 
         if (booking.getTravel() != null && booking.getTravel().getHotel() != null) {
-            hotelService.liberarPlazas(booking.getTravel().getHotel().getId(), booking.getCustomers().size());
+            hotelService.releaseCapacity(booking.getTravel().getHotel().getId(), booking.getCustomers().size());
         }
 
         Travel travel = booking.getTravel();
@@ -196,9 +196,9 @@ public class BookingService {
     @Transactional
     public void addCustomerToBooking(BookingUserRequestDTO request) {
         Booking booking = bookingRepository.findById(request.getBookingId())
-                .orElseThrow(() -> new ResourceNotFoundException(" la reserva", request.getBookingId()));
+                .orElseThrow(() -> new ResourceNotFoundException("la reserva", request.getBookingId()));
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("l usuario", request.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el usuario", request.getUserId()));
         validateMinorHasTutor(user);
 
         Travel travel = booking.getTravel();
@@ -217,7 +217,7 @@ public class BookingService {
             }
         }
         if (travel != null && travel.getHotel() != null) {
-            hotelService.reducirPlazas(travel.getHotel().getId(), 1);
+            hotelService.reduceCapacity(travel.getHotel().getId(), 1);
         }
         if (travel != null) {
             int availablePlaces = travel.getAvailablePlaces() == null ? 0 : travel.getAvailablePlaces();
@@ -262,12 +262,12 @@ public class BookingService {
             return new ArrayList<>();
         }
 
-        List<User> resolvedCustomers = new ArrayList<>();
+        List<User> users = userRepository.findAllById(customerIds);
         for (Long id : customerIds) {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("l cliente", id));
-            resolvedCustomers.add(user);
+            if (users.stream().noneMatch(u -> u.getId().equals(id))) {
+                throw new ResourceNotFoundException("el cliente", id);
+            }
         }
-        return resolvedCustomers;
+        return users;
     }
 }

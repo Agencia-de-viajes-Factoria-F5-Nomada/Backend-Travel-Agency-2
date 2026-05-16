@@ -76,7 +76,7 @@ class DriverControllerTest {
     void getActive_ShouldReturn200() throws Exception {
         when(driverService.getActive()).thenReturn(List.of(new DriverResponseDTO()));
 
-        mockMvc.perform(get("/api/drivers/activos"))
+        mockMvc.perform(get("/api/drivers/active"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }

@@ -202,39 +202,39 @@ class HotelServiceTest {
     }
 
     @Test
-    void reducirPlazas_ShouldReduceAvailablePlaces() {
+    void reduceCapacity_ShouldReduceAvailablePlaces() {
         when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
 
-        hotelService.reducirPlazas(1L, 10);
+        hotelService.reduceCapacity(1L, 10);
 
         assertThat(hotel.getAvailablePlaces()).isEqualTo(40);
         verify(hotelRepository).save(hotel);
     }
 
     @Test
-    void reducirPlazas_ShouldThrowHotelNotAvailableException() {
+    void reduceCapacity_ShouldThrowHotelNotAvailableException() {
         hotel.setAvailablePlaces(5);
         when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
 
-        assertThatThrownBy(() -> hotelService.reducirPlazas(1L, 10))
+        assertThatThrownBy(() -> hotelService.reduceCapacity(1L, 10))
                 .isInstanceOf(HotelNotAvailableException.class);
     }
 
     @Test
-    void liberarPlazas_ShouldIncreaseAvailablePlaces() {
+    void releaseCapacity_ShouldIncreaseAvailablePlaces() {
         when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
 
-        hotelService.liberarPlazas(1L, 20);
+        hotelService.releaseCapacity(1L, 20);
 
         assertThat(hotel.getAvailablePlaces()).isEqualTo(70);
         verify(hotelRepository).save(hotel);
     }
 
     @Test
-    void liberarPlazas_ShouldThrowResourceNotFoundException() {
+    void releaseCapacity_ShouldThrowResourceNotFoundException() {
         when(hotelRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> hotelService.liberarPlazas(99L, 10))
+        assertThatThrownBy(() -> hotelService.releaseCapacity(99L, 10))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

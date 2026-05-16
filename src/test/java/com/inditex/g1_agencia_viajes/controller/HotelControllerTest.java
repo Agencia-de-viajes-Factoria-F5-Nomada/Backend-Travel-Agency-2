@@ -76,7 +76,7 @@ class HotelControllerTest {
     void getActive_ShouldReturn200() throws Exception {
         when(hotelService.getActive()).thenReturn(List.of(new HotelResponseDTO()));
 
-        mockMvc.perform(get("/api/hotels/activos"))
+        mockMvc.perform(get("/api/hotels/active"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
@@ -85,7 +85,7 @@ class HotelControllerTest {
     void getAvailable_ShouldReturn200() throws Exception {
         when(hotelService.getAvailable()).thenReturn(List.of(new HotelResponseDTO()));
 
-        mockMvc.perform(get("/api/hotels/disponibles"))
+        mockMvc.perform(get("/api/hotels/available"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }

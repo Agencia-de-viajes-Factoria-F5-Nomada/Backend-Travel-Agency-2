@@ -42,18 +42,18 @@ public class TripSegmentService {
     @Transactional(readOnly = true)
     public TripSegmentResponseDTO getById(Long id) {
         TripSegment segment = tripSegmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("l trayecto", id));
+                .orElseThrow(() -> new ResourceNotFoundException("el trayecto", id));
         return tripSegmentMapper.toDTO(segment);
     }
 
     @Transactional
     public TripSegmentResponseDTO create(TripSegmentRequestDTO dto) {
         Travel travel = travelRepository.findById(dto.getTravelId())
-                .orElseThrow(() -> new ResourceNotFoundException("l viaje", dto.getTravelId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
         Bus bus = busRepository.findById(dto.getBusId())
-                .orElseThrow(() -> new ResourceNotFoundException("l bus", dto.getBusId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el bus", dto.getBusId()));
         Driver driver = driverRepository.findById(dto.getDriverId())
-                .orElseThrow(() -> new ResourceNotFoundException("l conductor", dto.getDriverId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el conductor", dto.getDriverId()));
 
         List<TripSegment> overlapping = tripSegmentRepository.findOverlappingByDriver(driver, dto.getStartTime(), dto.getEndTime());
         if (!overlapping.isEmpty()) {
@@ -71,14 +71,14 @@ public class TripSegmentService {
     @Transactional
     public TripSegmentResponseDTO update(Long id, TripSegmentRequestDTO dto) {
         TripSegment segment = tripSegmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("l trayecto", id));
+                .orElseThrow(() -> new ResourceNotFoundException("el trayecto", id));
 
         Travel travel = travelRepository.findById(dto.getTravelId())
-                .orElseThrow(() -> new ResourceNotFoundException("l viaje", dto.getTravelId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
         Bus bus = busRepository.findById(dto.getBusId())
-                .orElseThrow(() -> new ResourceNotFoundException("l bus", dto.getBusId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el bus", dto.getBusId()));
         Driver driver = driverRepository.findById(dto.getDriverId())
-                .orElseThrow(() -> new ResourceNotFoundException("l conductor", dto.getDriverId()));
+                .orElseThrow(() -> new ResourceNotFoundException("el conductor", dto.getDriverId()));
 
         List<TripSegment> overlapping = tripSegmentRepository.findOverlappingByDriver(driver, dto.getStartTime(), dto.getEndTime());
         overlapping = overlapping.stream()
@@ -105,7 +105,7 @@ public class TripSegmentService {
     @Transactional
     public void delete(Long id) {
         if (!tripSegmentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("l trayecto", id);
+            throw new ResourceNotFoundException("el trayecto", id);
         }
         tripSegmentRepository.deleteById(id);
     }

@@ -54,7 +54,7 @@ class AuthenticationControllerTest {
         employee.setPassword("$2a$10$8X.MsojZ2enH58GWd9AdlOMWs7XuPzcixfUccJL.3zCTizOsggiTO");
 
         when(employeeRepository.findByEmail("carlos@nomada.es")).thenReturn(Optional.of(employee));
-        when(jwtUtil.crearToken(any(), any(), any())).thenReturn("fake-jwt-token");
+        when(jwtUtil.createToken(any(), any(), any())).thenReturn("fake-jwt-token");
 
         String json = """
                 {

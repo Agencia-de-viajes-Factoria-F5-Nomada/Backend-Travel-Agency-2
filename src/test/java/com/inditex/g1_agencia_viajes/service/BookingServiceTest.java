@@ -148,7 +148,7 @@ class BookingServiceTest {
         dto.setCustomerIds(List.of(2L));
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
         when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(500.0);
@@ -158,7 +158,7 @@ class BookingServiceTest {
 
         assertThat(result).isNotNull();
         verify(travelRepository).findById(1L);
-        verify(userRepository).findById(2L);
+        verify(userRepository).findAllById(any());
         verify(bookingPricingService).calculateTotalPrice(any(Booking.class));
     }
 
@@ -175,8 +175,7 @@ class BookingServiceTest {
         dto.setCustomerIds(List.of(2L, 3L));
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
-        when(userRepository.findById(3L)).thenReturn(Optional.of(secondAdultUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser, secondAdultUser));
         when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(700.0);
@@ -184,7 +183,7 @@ class BookingServiceTest {
 
         bookingService.save(dto);
 
-        verify(hotelService).reducirPlazas(5L, 2);
+        verify(hotelService).reduceCapacity(5L, 2);
         verify(travelRepository).save(travel);
         assertThat(travel.getAvailablePlaces()).isEqualTo(8);
     }
@@ -199,7 +198,7 @@ class BookingServiceTest {
         dto.setCustomerIds(List.of(2L));
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         assertThatThrownBy(() -> bookingService.save(dto))
                 .isInstanceOf(TravelNotAvailableException.class)
@@ -215,7 +214,7 @@ class BookingServiceTest {
         dto.setCustomerIds(List.of(4L));
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findById(4L)).thenReturn(Optional.of(minorWithoutTutor));
+        when(userRepository.findAllById(any())).thenReturn(List.of(minorWithoutTutor));
 
         assertThatThrownBy(() -> bookingService.save(dto))
                 .isInstanceOf(MinorWithoutTutorException.class);
@@ -237,7 +236,7 @@ class BookingServiceTest {
         newTravel.setAvailablePlaces(10);
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
+        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
         when(travelRepository.findById(2L)).thenReturn(Optional.of(newTravel));
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(800.0);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
@@ -263,7 +262,7 @@ class BookingServiceTest {
 
         bookingService.deleteById(1L);
 
-        verify(hotelService, never()).liberarPlazas(anyLong(), anyInt());
+        verify(hotelService, never()).releaseCapacity(anyLong(), anyInt());
         verify(bookingRepository).deleteById(1L);
     }
 
@@ -279,7 +278,7 @@ class BookingServiceTest {
 
         bookingService.deleteById(1L);
 
-        verify(hotelService).liberarPlazas(5L, 1);
+        verify(hotelService).releaseCapacity(5L, 1);
         verify(travelRepository).save(travel);
         assertThat(travel.getAvailablePlaces()).isEqualTo(11);
     }
@@ -330,7 +329,7 @@ class BookingServiceTest {
 
         bookingService.addCustomerToBooking(request);
 
-        verify(hotelService).reducirPlazas(5L, 1);
+        verify(hotelService).reduceCapacity(5L, 1);
         verify(travelRepository).save(travel);
         assertThat(travel.getAvailablePlaces()).isEqualTo(9);
     }

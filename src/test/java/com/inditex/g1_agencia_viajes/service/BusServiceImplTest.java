@@ -4,6 +4,7 @@ import com.inditex.g1_agencia_viajes.dto.BusRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BusResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.DuplicateLicensePlateException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
+import com.inditex.g1_agencia_viajes.mapper.BusMapper;
 import com.inditex.g1_agencia_viajes.model.Bus;
 import com.inditex.g1_agencia_viajes.repository.BusRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,14 +26,18 @@ class BusServiceImplTest {
     @Mock
     private BusRepository busRepository;
 
+    @Mock
+    private BusMapper busMapper;
+
     private BusServiceImpl busService;
 
     private Bus bus;
     private BusRequestDTO requestDTO;
+    private BusResponseDTO responseDTO;
 
     @BeforeEach
     void setUp() {
-        busService = new BusServiceImpl(busRepository);
+        busService = new BusServiceImpl(busRepository, busMapper);
 
         bus = new Bus();
         bus.setId(1L);
@@ -50,11 +55,21 @@ class BusServiceImplTest {
         requestDTO.setWifi(true);
         requestDTO.setAC(true);
         requestDTO.setUSB(true);
+
+        responseDTO = new BusResponseDTO();
+        responseDTO.setId(1L);
+        responseDTO.setLicensePlate("ABC-1234");
+        responseDTO.setCapacity(50);
+        responseDTO.setBath(true);
+        responseDTO.setWifi(true);
+        responseDTO.setAC(true);
+        responseDTO.setUSB(true);
     }
 
     @Test
     void getAll_ShouldReturnListOfBuses() {
         when(busRepository.findAll()).thenReturn(List.of(bus));
+        when(busMapper.toDTO(bus)).thenReturn(responseDTO);
 
         List<BusResponseDTO> result = busService.getAll();
 
@@ -65,6 +80,7 @@ class BusServiceImplTest {
     @Test
     void getById_ShouldReturnBus() {
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
+        when(busMapper.toDTO(bus)).thenReturn(responseDTO);
 
         BusResponseDTO result = busService.getById(1L);
 
@@ -83,7 +99,9 @@ class BusServiceImplTest {
     @Test
     void create_ShouldCreateBus() {
         when(busRepository.existsByLicensePlate("ABC-1234")).thenReturn(false);
+        when(busMapper.toEntity(requestDTO)).thenReturn(bus);
         when(busRepository.save(any(Bus.class))).thenReturn(bus);
+        when(busMapper.toDTO(bus)).thenReturn(responseDTO);
 
         BusResponseDTO result = busService.create(requestDTO);
 
@@ -112,6 +130,7 @@ class BusServiceImplTest {
 
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
         when(busRepository.save(any(Bus.class))).thenReturn(bus);
+        when(busMapper.toDTO(bus)).thenReturn(responseDTO);
 
         BusResponseDTO result = busService.update(1L, updateDTO);
 
