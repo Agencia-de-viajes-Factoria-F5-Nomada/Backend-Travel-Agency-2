@@ -234,6 +234,7 @@ class BookingServiceTest {
         newTravel.setId(2L);
         newTravel.setStartDate(LocalDate.now().plusDays(30));
         newTravel.setEndDate(LocalDate.now().plusDays(35));
+        newTravel.setAvailablePlaces(10);
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));

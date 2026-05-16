@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -100,7 +101,7 @@ class TravelServiceTest {
 
     @Test
     void getAll_ShouldReturnAllTravels() {
-        when(travelRepository.findAll()).thenReturn(List.of(travel));
+        when(travelRepository.findByActiveTrue()).thenReturn(List.of(travel));
         when(travelMapper.toDTO(travel)).thenReturn(responseDTO);
 
         List<TravelResponseDTO> result = travelService.getAll();
@@ -110,7 +111,7 @@ class TravelServiceTest {
 
     @Test
     void getAvailable_ShouldReturnTravelsWithAvailablePlacesAndFutureDates() {
-        when(travelRepository.findAll()).thenReturn(List.of(travel, futureTravel, saleTravel));
+        when(travelRepository.findByActiveTrueAndStartDateAfter(any())).thenReturn(List.of(futureTravel, saleTravel));
         when(travelMapper.toDTO(futureTravel)).thenReturn(responseDTO);
 
         List<TravelResponseDTO> result = travelService.getAvailable();
@@ -120,7 +121,7 @@ class TravelServiceTest {
 
     @Test
     void getOnSale_ShouldReturnSaleTravels() {
-        when(travelRepository.findAll()).thenReturn(List.of(saleTravel));
+        when(travelRepository.findBySaleTrueAndActiveTrueAndStartDateAfter(any())).thenReturn(List.of(saleTravel));
         when(travelMapper.toDTO(saleTravel)).thenReturn(responseDTO);
 
         List<TravelResponseDTO> result = travelService.getOnSale();
@@ -140,11 +141,11 @@ class TravelServiceTest {
     }
 
     @Test
-    void getById_ShouldThrowRuntimeException() {
+    void getById_ShouldThrowResourceNotFoundException() {
         when(travelRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> travelService.getById(99L))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("No hemos podido encontrar la información de el viaje, con el id: 99");
     }
 

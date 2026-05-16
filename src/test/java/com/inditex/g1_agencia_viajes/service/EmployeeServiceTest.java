@@ -1,7 +1,11 @@
 package com.inditex.g1_agencia_viajes.service;
 
+import com.inditex.g1_agencia_viajes.dto.EmployeeRequestDTO;
+import com.inditex.g1_agencia_viajes.dto.EmployeeResponseDTO;
+import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.model.Gender;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +30,7 @@ class EmployeeServiceTest {
     private EmployeeService employeeService;
 
     private Employee employee;
+    private EmployeeRequestDTO requestDTO;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +44,18 @@ class EmployeeServiceTest {
         employee.setGender(Gender.MALE);
         employee.setWorkHour(40);
         employee.setHired(true);
-        employee.setPassword("plainPassword");
+        employee.setRole(Role.EDITOR);
+        employee.setPassword("$2a$10$hashedPassword");
+
+        requestDTO = new EmployeeRequestDTO();
+        requestDTO.setName("John");
+        requestDTO.setSurname("Doe");
+        requestDTO.setEmail("john@nomada.es");
+        requestDTO.setGender(Gender.MALE);
+        requestDTO.setWorkHour(40);
+        requestDTO.setHired(true);
+        requestDTO.setRole(Role.EDITOR);
+        requestDTO.setPassword("plainPassword");
     }
 
     @Test
@@ -50,19 +66,19 @@ class EmployeeServiceTest {
             return saved;
         });
 
-        Employee result = employeeService.saveEmployee(employee);
+        EmployeeResponseDTO result = employeeService.saveEmployee(requestDTO);
 
         assertThat(result).isNotNull();
-        assertThat(result.getPassword()).isNotEqualTo("plainPassword");
-        assertThat(BCrypt.checkpw("plainPassword", result.getPassword())).isTrue();
-        verify(employeeRepository).save(employee);
+        assertThat(result.getEmployeeId()).isEqualTo(1L);
+        assertThat(result.getName()).isEqualTo("John");
+        verify(employeeRepository).save(any(Employee.class));
     }
 
     @Test
     void saveEmployee_ShouldThrowWhenEmailNotFromNomadaDomain() {
-        employee.setEmail("john@gmail.com");
+        requestDTO.setEmail("john@gmail.com");
 
-        assertThatThrownBy(() -> employeeService.saveEmployee(employee))
+        assertThatThrownBy(() -> employeeService.saveEmployee(requestDTO))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("@nomada.es");
 
@@ -71,9 +87,9 @@ class EmployeeServiceTest {
 
     @Test
     void saveEmployee_ShouldThrowWhenEmailIsNull() {
-        employee.setEmail(null);
+        requestDTO.setEmail(null);
 
-        assertThatThrownBy(() -> employeeService.saveEmployee(employee))
+        assertThatThrownBy(() -> employeeService.saveEmployee(requestDTO))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("@nomada.es");
 
@@ -84,7 +100,7 @@ class EmployeeServiceTest {
     void getAllEmployees_ShouldReturnAllEmployees() {
         when(employeeRepository.findAll()).thenReturn(List.of(employee));
 
-        List<Employee> result = employeeService.getAllEmployees();
+        List<EmployeeResponseDTO> result = employeeService.getAllEmployees();
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getName()).isEqualTo("John");
@@ -94,25 +110,38 @@ class EmployeeServiceTest {
     void getEmployeeById_ShouldReturnEmployee() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
-        Employee result = employeeService.getEmployeeById(1L);
+        EmployeeResponseDTO result = employeeService.getEmployeeById(1L);
 
         assertThat(result).isNotNull();
         assertThat(result.getEmployeeId()).isEqualTo(1L);
     }
 
     @Test
-    void getEmployeeById_ShouldReturnNullWhenNotFound() {
+    void getEmployeeById_ShouldThrowWhenNotFound() {
         when(employeeRepository.findById(99L)).thenReturn(Optional.empty());
 
-        Employee result = employeeService.getEmployeeById(99L);
-
-        assertThat(result).isNull();
+        assertThatThrownBy(() -> employeeService.getEmployeeById(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("el empleado");
     }
 
     @Test
     void deleteEmployee_ShouldDeleteEmployee() {
+        when(employeeRepository.existsById(1L)).thenReturn(true);
+
         employeeService.deleteEmployee(1L);
 
         verify(employeeRepository).deleteById(1L);
+    }
+
+    @Test
+    void deleteEmployee_ShouldThrowWhenNotFound() {
+        when(employeeRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> employeeService.deleteEmployee(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("el empleado");
+
+        verify(employeeRepository, never()).deleteById(any());
     }
 }

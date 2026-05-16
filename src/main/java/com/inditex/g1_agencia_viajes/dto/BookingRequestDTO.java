@@ -1,6 +1,7 @@
 package com.inditex.g1_agencia_viajes.dto;
 
 import com.inditex.g1_agencia_viajes.model.TypeBoard;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -22,6 +23,7 @@ public class BookingRequestDTO {
     @NotNull(message = "El viaje es obligatorio")
     private Long travelId;
 
+    @NotEmpty
     private List<Long> customerIds;
 
     private Long employeeId;

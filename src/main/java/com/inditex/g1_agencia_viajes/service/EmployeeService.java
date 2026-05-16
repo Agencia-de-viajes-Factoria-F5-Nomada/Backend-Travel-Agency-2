@@ -1,12 +1,16 @@
 package com.inditex.g1_agencia_viajes.service;
 
+import com.inditex.g1_agencia_viajes.dto.EmployeeRequestDTO;
+import com.inditex.g1_agencia_viajes.dto.EmployeeResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
@@ -19,47 +23,80 @@ public class EmployeeService {
         this.employeeRepository = employeeRepository;
     }
 
-    public Employee saveEmployee(Employee employee) {
-        validateEmailDomain(employee.getEmail());
-        String passwordPlain = employee.getPassword();
-        String encryptedPassword = BCrypt.hashpw(passwordPlain, BCrypt.gensalt());
-        employee.setPassword(encryptedPassword);
-        return employeeRepository.save(employee);
+    @Transactional
+    public EmployeeResponseDTO saveEmployee(EmployeeRequestDTO dto) {
+        validateEmailDomain(dto.getEmail());
+
+        Employee employee = new Employee();
+        employee.setName(dto.getName());
+        employee.setSurname(dto.getSurname());
+        employee.setEmail(dto.getEmail());
+        employee.setGender(dto.getGender());
+        employee.setWorkHour(dto.getWorkHour());
+        employee.setHired(dto.getHired());
+        employee.setRole(dto.getRole());
+        employee.setPassword(BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt()));
+
+        return toResponseDTO(employeeRepository.save(employee));
     }
 
-    public Employee updateEmployee(Long id, Employee details) {
+    @Transactional
+    public EmployeeResponseDTO updateEmployee(Long id, EmployeeRequestDTO dto) {
         Employee existing = employeeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("l empleado", id));
+                .orElseThrow(() -> new ResourceNotFoundException("el empleado", id));
 
-        if (details.getEmail() != null && !details.getEmail().equals(existing.getEmail())) {
-            validateEmailDomain(details.getEmail());
-            existing.setEmail(details.getEmail());
+        if (dto.getEmail() != null && !dto.getEmail().equals(existing.getEmail())) {
+            validateEmailDomain(dto.getEmail());
+            existing.setEmail(dto.getEmail());
         }
 
-        existing.setName(details.getName());
-        existing.setSurname(details.getSurname());
-        existing.setGender(details.getGender());
-        existing.setWorkHour(details.getWorkHour());
-        existing.setHired(details.getHired());
-        existing.setRole(details.getRole());
+        existing.setName(dto.getName());
+        existing.setSurname(dto.getSurname());
+        existing.setGender(dto.getGender());
+        existing.setWorkHour(dto.getWorkHour());
+        existing.setHired(dto.getHired());
+        existing.setRole(dto.getRole());
 
-        if (details.getPassword() != null && !details.getPassword().isBlank()) {
-            existing.setPassword(BCrypt.hashpw(details.getPassword(), BCrypt.gensalt()));
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            existing.setPassword(BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt()));
         }
 
-        return employeeRepository.save(existing);
+        return toResponseDTO(employeeRepository.save(existing));
     }
 
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<EmployeeResponseDTO> getAllEmployees() {
+        return employeeRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
-    public Employee getEmployeeById(Long id) {
-        return employeeRepository.findById(id).orElse(null);
+    @Transactional(readOnly = true)
+    public EmployeeResponseDTO getEmployeeById(Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("el empleado", id));
+        return toResponseDTO(employee);
     }
 
+    @Transactional
     public void deleteEmployee(Long id) {
+        if (!employeeRepository.existsById(id)) {
+            throw new ResourceNotFoundException("el empleado", id);
+        }
         employeeRepository.deleteById(id);
+    }
+
+    private EmployeeResponseDTO toResponseDTO(Employee employee) {
+        EmployeeResponseDTO dto = new EmployeeResponseDTO();
+        dto.setEmployeeId(employee.getEmployeeId());
+        dto.setName(employee.getName());
+        dto.setSurname(employee.getSurname());
+        dto.setEmail(employee.getEmail());
+        dto.setGender(employee.getGender());
+        dto.setWorkHour(employee.getWorkHour());
+        dto.setHired(employee.getHired());
+        dto.setRole(employee.getRole());
+        return dto;
     }
 
     private void validateEmailDomain(String email) {

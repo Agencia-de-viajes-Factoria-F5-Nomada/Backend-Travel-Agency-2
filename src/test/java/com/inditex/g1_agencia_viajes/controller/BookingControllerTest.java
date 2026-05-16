@@ -132,7 +132,8 @@ class BookingControllerTest {
         String json = """
                 {
                     "typeBoard": "FULL",
-                    "travelId": 1
+                    "travelId": 1,
+                    "customerIds": [1]
                 }
                 """;
 

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,34 +32,24 @@ public class TravelService {
 
     @Transactional(readOnly = true)
     public List<TravelResponseDTO> getAll() {
-        List<Travel> travels = travelRepository.findAll();
-        Collections.shuffle(travels);
-        return travels.stream()
+        return travelRepository.findByActiveTrue().stream()
                 .map(travelMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<TravelResponseDTO> getAvailable() {
-        List<Travel> travels = travelRepository.findAll()
+        return travelRepository.findByActiveTrueAndStartDateAfter(LocalDate.now())
                 .stream()
                 .filter(t -> t.getAvailablePlaces() != null && t.getAvailablePlaces() > 0)
-                .filter(t -> t.getStartDate().isAfter(LocalDate.now()))
-                .collect(Collectors.toList());
-        Collections.shuffle(travels);
-        return travels.stream()
                 .map(travelMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<TravelResponseDTO> getOnSale() {
-        List<Travel> travels = travelRepository.findAll()
+        return travelRepository.findBySaleTrueAndActiveTrueAndStartDateAfter(LocalDate.now())
                 .stream()
-                .filter(t -> Boolean.TRUE.equals(t.getSale()))
-                .collect(Collectors.toList());
-        Collections.shuffle(travels);
-        return travels.stream()
                 .map(travelMapper::toDTO)
                 .collect(Collectors.toList());
     }

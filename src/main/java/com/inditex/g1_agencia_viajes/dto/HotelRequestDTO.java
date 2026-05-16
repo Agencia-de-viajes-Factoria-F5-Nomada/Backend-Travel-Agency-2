@@ -1,5 +1,6 @@
 package com.inditex.g1_agencia_viajes.dto;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,6 +22,7 @@ public class HotelRequestDTO {
     private String country;
 
     @Min(value = 1, message = "Las estrellas deben ser mínimo 1")
+    @Max(value = 5, message = "Las estrellas deben ser máximo 5")
     private Integer stars;
 
     @NotNull(message = "La capacidad es obligatoria")

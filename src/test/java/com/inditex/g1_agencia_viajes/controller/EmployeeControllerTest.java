@@ -1,8 +1,12 @@
 package com.inditex.g1_agencia_viajes.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.inditex.g1_agencia_viajes.dto.EmployeeRequestDTO;
+import com.inditex.g1_agencia_viajes.dto.EmployeeResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.GlobalExceptionHandler;
-import com.inditex.g1_agencia_viajes.model.Employee;
+import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
+import com.inditex.g1_agencia_viajes.model.Gender;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.service.EmployeeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +22,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -43,10 +48,10 @@ class EmployeeControllerTest {
 
     @Test
     void getAll_ShouldReturn200() throws Exception {
-        Employee employee = new Employee();
-        employee.setEmployeeId(1L);
-        employee.setName("Carlos");
-        when(employeeService.getAllEmployees()).thenReturn(List.of(employee));
+        EmployeeResponseDTO dto = new EmployeeResponseDTO();
+        dto.setEmployeeId(1L);
+        dto.setName("Carlos");
+        when(employeeService.getAllEmployees()).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/employees"))
                 .andExpect(status().isOk())
@@ -55,11 +60,11 @@ class EmployeeControllerTest {
 
     @Test
     void getById_ShouldReturn200() throws Exception {
-        Employee employee = new Employee();
-        employee.setEmployeeId(1L);
-        employee.setName("Carlos");
-        employee.setEmail("carlos@nomada.es");
-        when(employeeService.getEmployeeById(1L)).thenReturn(employee);
+        EmployeeResponseDTO dto = new EmployeeResponseDTO();
+        dto.setEmployeeId(1L);
+        dto.setName("Carlos");
+        dto.setEmail("carlos@nomada.es");
+        when(employeeService.getEmployeeById(1L)).thenReturn(dto);
 
         mockMvc.perform(get("/api/employees/1"))
                 .andExpect(status().isOk())
@@ -68,7 +73,8 @@ class EmployeeControllerTest {
 
     @Test
     void getById_ShouldReturn404() throws Exception {
-        when(employeeService.getEmployeeById(99L)).thenReturn(null);
+        when(employeeService.getEmployeeById(99L))
+                .thenThrow(new ResourceNotFoundException("el empleado", 99L));
 
         mockMvc.perform(get("/api/employees/99"))
                 .andExpect(status().isNotFound());
@@ -76,11 +82,11 @@ class EmployeeControllerTest {
 
     @Test
     void create_ShouldReturn201() throws Exception {
-        Employee employee = new Employee();
-        employee.setEmployeeId(1L);
-        employee.setName("Nuevo");
-        employee.setEmail("nuevo@nomada.es");
-        when(employeeService.saveEmployee(any(Employee.class))).thenReturn(employee);
+        EmployeeResponseDTO response = new EmployeeResponseDTO();
+        response.setEmployeeId(1L);
+        response.setName("Nuevo");
+        response.setEmail("nuevo@nomada.es");
+        when(employeeService.saveEmployee(any(EmployeeRequestDTO.class))).thenReturn(response);
 
         String json = """
                 {
@@ -103,10 +109,17 @@ class EmployeeControllerTest {
 
     @Test
     void create_WithInvalidBody_ShouldReturn400() throws Exception {
-        when(employeeService.saveEmployee(any(Employee.class)))
-                .thenThrow(new IllegalArgumentException("El email debe ser del dominio @nomada.es"));
-
-        String json = "{}";
+        String json = """
+                {
+                    "name": "",
+                    "surname": "",
+                    "email": "invalido",
+                    "gender": "",
+                    "hired": true,
+                    "role": "",
+                    "password": ""
+                }
+                """;
 
         mockMvc.perform(post("/api/employees")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -116,11 +129,11 @@ class EmployeeControllerTest {
 
     @Test
     void update_ShouldReturn200() throws Exception {
-        Employee employee = new Employee();
-        employee.setEmployeeId(1L);
-        employee.setName("Actualizado");
-        employee.setEmail("actualizado@nomada.es");
-        when(employeeService.updateEmployee(any(), any(Employee.class))).thenReturn(employee);
+        EmployeeResponseDTO response = new EmployeeResponseDTO();
+        response.setEmployeeId(1L);
+        response.setName("Actualizado");
+        response.setEmail("actualizado@nomada.es");
+        when(employeeService.updateEmployee(any(), any(EmployeeRequestDTO.class))).thenReturn(response);
 
         String json = """
                 {
@@ -129,7 +142,8 @@ class EmployeeControllerTest {
                     "email": "actualizado@nomada.es",
                     "gender": "MALE",
                     "hired": true,
-                    "role": "EDITOR"
+                    "role": "EDITOR",
+                    "password": "123456"
                 }
                 """;
 
@@ -142,7 +156,6 @@ class EmployeeControllerTest {
 
     @Test
     void delete_ShouldReturn204() throws Exception {
-        when(employeeService.getEmployeeById(1L)).thenReturn(new Employee());
         doNothing().when(employeeService).deleteEmployee(1L);
 
         mockMvc.perform(delete("/api/employees/1"))
@@ -151,7 +164,8 @@ class EmployeeControllerTest {
 
     @Test
     void delete_ShouldReturn404_WhenNotFound() throws Exception {
-        when(employeeService.getEmployeeById(99L)).thenReturn(null);
+        doThrow(new ResourceNotFoundException("el empleado", 99L))
+                .when(employeeService).deleteEmployee(99L);
 
         mockMvc.perform(delete("/api/employees/99"))
                 .andExpect(status().isNotFound());

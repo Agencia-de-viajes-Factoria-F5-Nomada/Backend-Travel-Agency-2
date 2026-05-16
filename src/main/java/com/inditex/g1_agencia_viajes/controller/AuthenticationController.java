@@ -5,6 +5,8 @@ import com.inditex.g1_agencia_viajes.dto.LoginResponse;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import com.inditex.g1_agencia_viajes.security.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/authentication")
+@Tag(name = "Autenticación", description = "Inicio de sesión de empleados")
 public class AuthenticationController {
 
     private final EmployeeRepository employeeRepository;
@@ -26,6 +29,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Iniciar sesión", description = "Autentica un empleado y devuelve un token JWT")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         Employee employee = employeeRepository.findByEmail(loginRequest.getEmail()).orElse(null);
 

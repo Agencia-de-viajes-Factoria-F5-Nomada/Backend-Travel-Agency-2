@@ -1,7 +1,11 @@
 package com.inditex.g1_agencia_viajes.controller;
 
-import com.inditex.g1_agencia_viajes.model.Employee;
+import com.inditex.g1_agencia_viajes.dto.EmployeeRequestDTO;
+import com.inditex.g1_agencia_viajes.dto.EmployeeResponseDTO;
 import com.inditex.g1_agencia_viajes.service.EmployeeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/employees")
+@Tag(name = "Empleados", description = "Gestión de empleados de la agencia")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -19,35 +24,32 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Employee>> getAll() {
+    @Operation(summary = "Obtener todos los empleados")
+    public ResponseEntity<List<EmployeeResponseDTO>> getAll() {
         return ResponseEntity.ok(employeeService.getAllEmployees());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Employee> getById(@PathVariable Long id) {
-        Employee employee = employeeService.getEmployeeById(id);
-        if (employee == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(employee);
+    @Operation(summary = "Obtener un empleado por ID")
+    public ResponseEntity<EmployeeResponseDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Employee> create(@RequestBody Employee employee) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.saveEmployee(employee));
+    @Operation(summary = "Crear un nuevo empleado")
+    public ResponseEntity<EmployeeResponseDTO> create(@Valid @RequestBody EmployeeRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.saveEmployee(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Employee> update(@PathVariable Long id, @RequestBody Employee employeeDetails) {
-        return ResponseEntity.ok(employeeService.updateEmployee(id, employeeDetails));
+    @Operation(summary = "Actualizar un empleado existente")
+    public ResponseEntity<EmployeeResponseDTO> update(@PathVariable Long id, @Valid @RequestBody EmployeeRequestDTO dto) {
+        return ResponseEntity.ok(employeeService.updateEmployee(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un empleado")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        Employee employee = employeeService.getEmployeeById(id);
-        if (employee == null) {
-            return ResponseEntity.notFound().build();
-        }
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }

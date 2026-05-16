@@ -1,6 +1,6 @@
 # Auditoría de Código — Backend-Travel-Agency-2
 
-**Fecha:** 15 de mayo de 2026
+**Fecha:** 16 de mayo de 2026 (actualización: análisis TravelService + estado real)
 **Proyecto:** Backend-Travel-Agency-2 (Spring Boot + Maven + MySQL)
 
 ---
@@ -105,11 +105,7 @@ Actualmente maneja:
 
 ### 3.4 Validaciones — 🟡 7/10
 
-**🔴 Falta `@Valid` en `AuthenticationController.java:27`**
-```java
-public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request)
-```
-Sin `@Valid`, las validaciones de `LoginRequest` nunca se ejecutan.
+**✅ `@Valid` en `AuthenticationController.java:27`** — Corregido desde la auditoría anterior. Ya tiene `@Valid`.
 
 **🔴 Falta `@Valid` en `EmployeeController.java:36,41`**
 Los métodos `create()` y `update()` de EmployeeController no tienen `@Valid`.
@@ -148,30 +144,39 @@ Sin validación de tamaño mínimo, se podría crear una reserva sin clientes.
 
 ### 3.6 Tests — 🟡 7/10
 
-**10 archivos de test (~2100 líneas):**
+**22 archivos de test (11 service + 10 controller + 1 app):**
 
 | Test | Líneas | Cobertura |
 |------|--------|-----------|
 | `BookingPricingServiceTest` | 297 | Quote con child/pensioner/group/offer discounts + errores |
-| `BookingServiceTest` | 368 | CRUD, addCustomer, quote, minor validation, capacity |
+| `BookingServiceTest` | 386 | CRUD, addCustomer, quote, minor validation, capacity |
 | `BusServiceImplTest` | 146 | CRUD, duplicate license, errores |
 | `DriverServiceTest` | 160 | CRUD, errores |
-| `EmployeeServiceTest` | 96 | Save con BCrypt, getById, delete |
+| `EmployeeServiceTest` | 118 | Save con BCrypt, getById, delete |
 | `HotelServiceTest` | 240 | CRUD, reducirPlazas/liberarPlazas, errores |
 | `OfferServiceTest` | 133 | CRUD, errores |
-| `TravelServiceTest` | 252 | CRUD, date validation, available/onSale queries |
-| `TripSegmentServiceTest` | 180 | CRUD, errores |
+| `TravelServiceTest` | 253 | CRUD, date validation, available/onSale queries |
+| `TripSegmentServiceTest` | 180 | CRUD, overlapping driver (sin test real) |
 | `UserServiceTest` | 229 | CRUD, getActive, update, delete, errores |
+| `*ControllerTest` (10) | ~134-164 c/u | Controller tests con `MockMvc` + `GlobalExceptionHandler` |
 
-**🔴 Tests con assertions rotas:**
-- `TravelServiceTest.java:142-148, 226-231, 244-250` — esperan `"Viaje no encontrado"` pero el mensaje real es `"No hemos podido encontrar la información de el viaje, con el id: 99"`. **FALLAN.**
-- `OfferServiceTest.java:114` — espera `"Oferta no encontrada"` pero el mensaje real incluye el ID. **FALLA.**
+**✅ Assertions de mensajes corregidos** — Tras commit `7b112c1`, las excepciones usan `ResourceNotFoundException` con mensajes consistentes. Los tests usan `hasMessageContaining()` con subcadenas válidas.
+
+**🟢 Controller tests presentes** — 10 tests con `MockMvcBuilders.standaloneSetup`. No usan `@WebMvcTest` pero cubren los endpoints.
+
+**⚠️ TravelServiceTest.getById** (`TravelServiceTest.java:147`)
+Usa `RuntimeException.class` genérico → debería usar `ResourceNotFoundException.class`.
+
+**🔴 TripSegmentServiceTest — mock faltante** (`TripSegmentServiceTest.java`)
+`tripSegmentRepository.findOverlappingByDriver()` no mockeado en `create()`/`update()`. La lógica de solapamiento NO se testea.
+
+**🔴 G1AgenciaViajesApplicationTests sin test DB** (`G1AgenciaViajesApplicationTests.java`)
+`@SpringBootTest` sin H2 ni perfil test. Intenta conectar a MySQL real.
 
 **🟡 Tests faltantes:**
-- Controller tests (`@WebMvcTest`)
 - Repository tests (`@DataJpaTest`)
-- Tests de seguridad/autenticación
 - Tests de CloudinaryService
+- Tests de JwtFilter / SecurityConfig
 
 ---
 
@@ -201,48 +206,62 @@ Sin validación de tamaño mínimo, se podría crear una reserva sin clientes.
 
 ---
 
-### 3.9 Reglas de negocio — 🟢 8/10
+### 3.9 Reglas de negocio — 🟡 6/10
 
 | Regla | Estado | Detalle |
 |-------|--------|---------|
-| No se pueden vender viajes pasados | 🟡 Parcial | `TravelService.getAvailable()` filtra por fecha futura, pero `BookingService.save()` no comprueba si el viaje ya ha pasado |
+| No se pueden vender viajes pasados | 🟡 Parcial | `TravelService.getAvailable()` filtra por fecha futura, pero `BookingService.save()` no comprueba si el viaje ya ha pasado. Además `getAll()` ahora NO filtra por activos — devuelve viajes pasados e inactivos. |
 | No vender si bus/hotel completo | 🟢 OK | `BookingService.save()` checks `availablePlaces` y llama a `hotelService.reducirPlazas()` |
 | Menor acompañado de adulto | 🟢 OK | `BookingService.validateMinorHasTutor()` chequea edad < 18 y `tutorId != null` |
 | Conductor no puede conducir 2 buses | 🟢 OK | `TripSegmentService` consulta `findOverlappingByDriver()` |
 | Tarifa niño/adulto/pensionista | 🟢 OK | `BookingPricingService` con descuentos 15% niño, 10% pensionista |
 | Descuento por grupo | 🟢 OK | 5% si >= 10 pasajeros y `isGroup == true` |
 
+**🟡 REGRESIÓN: `getAll()` dejó de filtrar por activos** (`TravelService.java:35-41`)
+Commit `69fc944` reemplazó `findByActiveTrue()` por `findAll()`. Ahora devuelve viajes inactivos y pasados. En la versión inicial (commit `929a41d`) sí se filtraba correctamente.
+
+**🟡 REGRESIÓN: `getOnSale()` perdió filtro de fecha** (`TravelService.java:57-66`)
+Commit `69fc944` reemplazó `findBySaleTrueAndActiveTrueAndStartDateAfter(LocalDate.now())` por `findAll()` + `filter(sale == true)`. Ahora muestra ofertas de viajes ya pasados.
+
+**🟡 `Collections.shuffle()` en listados** (`TravelService.java:37,50,62`)
+Añadido en commit `7651cef`. Baraja aleatoriamente los resultados de `getAll()`, `getAvailable()` y `getOnSale()`. Esto:
+- Hace impredecible el orden de respuesta (cada petición devuelve orden distinto)
+- Inhabilita cualquier intento futuro de paginación
+- Es un efecto secundario sobre la lista original (no una copia)
+
 ---
 
-### 3.10 Seguridad — 🔴 2/10
+### 3.10 Seguridad — 🟡 5/10 (mejorado desde auditoría anterior)
 
-**🔴 CRÍTICO: JWT secret hardcodeado** (`JwtUtil.java:11`, `JwtFilter.java:53`)
+**Problemas corregidos desde la auditoría del 15/05:**
+- ✅ **JWT secret**: Ahora se inyecta vía `@Value("${jwt.secret}")` desde `application.properties`. Ya no está hardcodeado en código.
+- ✅ **JwtFilter autentica**: Ya no whitelistea todas las rutas. Solo permite `/api/authentication/login`, `/api-docs`, `/swagger-ui`. Verifica token Bearer y aplica roles (VIEWER=read-only, EDITOR=no employees).
+- ✅ **Passwords en seed**: Ahora son hashes BCrypt válidos en `data.sql`.
+- ✅ **Inyección por campo**: No existe `@Autowired` en campos en todo el código. Todo es constructor injection.
+
+**🔴 CRÍTICO: JWT secret con fallback hardcodeado** (`application.properties:21`)
+```properties
+jwt.secret=${JWT_SECRET:default_secret_change_me}
+```
+Si la variable de entorno `JWT_SECRET` no está definida, se usa `default_secret_change_me`. Cualquiera puede forjar tokens. **Quitar el `:default_secret_change_me`**.
+
+**🟡 Posible mismatch en ruta Swagger del filtro** (`JwtFilter.java:33`)
 ```java
-private static final String SECRET_KEY = "your_secret_password";
-Algorithm.HMAC256("your_secret_password");
+path.startsWith("/swagger-ui")
 ```
-Cualquiera con acceso al código puede forjar tokens. Mover a `application.properties` y usar `@Value`.
+Comprueba `/swagger-ui` pero la ruta configurada en `application.properties` es `/swagger-ui.html`. Las rutas reales de Swagger son `/swagger-ui.html` y `/swagger-ui/*`. Podría no matchear.
 
-**🔴 CRÍTICO: JwtFilter no protege ningún endpoint** (`JwtFilter.java:28-38`)
+**🟡 EmployeeController expone entidad** — acepta `Employee` directamente, sin `@Valid`. `password` tiene `WRITE_ONLY` pero es mejor usar DTO.
+
+**🟡 Falta `@Transactional` en `EmployeeService`** — todos sus métodos carecen de `@Transactional`.
+
+**🟠 Naming español en JwtUtil** (`JwtUtil.java`)
 ```java
-if (path.startsWith("/api/users") || path.startsWith("/api/hotels") || ...) {
-    chain.doFilter(request, response);
-    return;
-}
+private final Algorithm algoritmo;       // → algorithm
+public String crearToken(...)             // → createToken
+public Algorithm getAlgoritmo()           // → getAlgorithm
 ```
-TODAS las rutas `/api/...` están whitelisted. El filter llama a `chain.doFilter()` sin verificar token para **cada endpoint de la API**. La autenticación JWT nunca se ejecuta.
-
-**🔴 CRÍTICO: Contraseñas en texto plano en seed data** (`data.sql:18-21`)
-```sql
-INSERT INTO employees (...) VALUES (1, 'Admin', 'admin@email.com', '123456', 'ADMIN', ...);
-```
-`EmployeeService` hashea con BCrypt pero `data.sql` bypassa el servicio. El login por BCrypt fallará para estos usuarios seed.
-
-**🟡 EmployeeController expone entidad** — acepta `Employee` directamente, `password` aunque es `WRITE_ONLY` podría exponerse.
-
-**🟡 Inyección por campo** (`AuthenticationController.java:20-24`, `EmployeeService.java:15-16`) — usar constructor injection.
-
-**🟡 Falta `@Transactional` en `EmployeeService.deleteEmployee()`**
+Violación de AGENTS.md sección 2 (nombres en inglés).
 
 ---
 
@@ -250,14 +269,20 @@ INSERT INTO employees (...) VALUES (1, 'Admin', 'admin@email.com', '123456', 'AD
 
 | # | Problema | Archivo | Detalle |
 |---|----------|---------|---------|
-| 1 | Queries ineficientes | `TravelService.java:43-57` | `getAvailable()` y `getOnSale()` hacen `findAll()` y filtran en memoria. El repo tiene queries nativas sin usar |
-| 2 | Sin paginación | Todos los listados | Devuelven todos los registros sin paginar |
-| 3 | Sin BusMapper | `BusServiceImpl.java:71-96` | Define `toResponseDTO()` y `toEntity()` internos; los demás domains tienen mapper dedicado |
-| 4 | Typos en mensajes de error | Varios | "l bus", "l hotel", "l cliente", "l viaje", "l empleado", "l tutor", "l trayecto" — falta "e" de "el" |
-| 5 | Operador `+` sobrante | `BookingPricingService.java:41` | `"l viaje", + request.getTravelId()` — el unario `+` no hace nada |
-| 6 | `@Repository` ausente | `DriverRepository.java:8` | Falta la anotación |
-| 7 | data.sql con IDs fijos | `data.sql` | Asume que la secuencia de BD empieza en 1 |
-| 8 | update() no reconcilia capacidad | `BookingService.java:88-114` | Al cambiar de viaje/hotel no restaura plazas del anterior |
+| 1 | Queries ineficientes + regresión | `TravelService.java:35-66` | `getAll()`, `getAvailable()` y `getOnSale()` usan `findAll()` + filtro en memoria. El repositorio tiene 3 queries derivadas útiles (`findByActiveTrue()`, `findByActiveTrueAndStartDateAfter()`, `findBySaleTrueAndActiveTrueAndStartDateAfter()`) que **no se usan**. La versión inicial (commit `929a41d`) sí las usaba. |
+| 2 | `Collections.shuffle()` en listados | `TravelService.java:37,50,62` | Añadido en commit `7651cef`. Baraja resultados aleatoriamente. Hace impredecible el orden, impide paginación. |
+| 3 | `getAll()` sin filtrar activos | `TravelService.java:35-41` | Regresión desde commit `69fc944`. Antes usaba `findByActiveTrue()`. |
+| 4 | `getOnSale()` sin filtrar por fecha | `TravelService.java:57-66` | Regresión desde commit `69fc944`. Antes usaba `findBySaleTrueAndActiveTrueAndStartDateAfter()`. |
+| 5 | Sin paginación | Todos los listados | Devuelven todos los registros sin paginar |
+| 6 | Sin BusMapper | `BusServiceImpl.java:71-96` | Define `toResponseDTO()` y `toEntity()` internos; los demás domains tienen mapper dedicado |
+| 7 | Typos en mensajes de error | Varios | "l bus", "l hotel", "l cliente", "l viaje", "l empleado", "l tutor", "l trayecto" — falta "e" de "el" |
+| 8 | Operador `+` sobrante | `BookingPricingService.java:41` | `"l viaje", + request.getTravelId()` — el unario `+` no hace nada |
+| 9 | `@Repository` ausente | Varios repos | `BookingRepository`, `DriverRepository`, `EmployeeRepository`, `OfferRepository`, `TripSegmentRepository` |
+| 10 | data.sql con IDs fijos | `data.sql` | Asume que la secuencia de BD empieza en 1 |
+| 11 | update() no reconcilia capacidad | `BookingService.java:88-114` | Al cambiar de viaje/hotel no restaura plazas del anterior |
+| 12 | Naming español en servicio | `HotelService.java` | `reducirPlazas()`, `liberarPlazas()` — violan AGENTS.md (deben ser inglés) |
+| 13 | Hard delete vs soft delete | `UserService.java` | `deleteById()` (hard delete) mientras Hotel/Bus/Driver/Travel usan soft delete (`active=false`) |
+| 14 | N+1 queries en bucle | `BookingService.java:233`, `BookingPricingService.java:66` | `findById()` en loop en lugar de `findAllById()` |
 
 ---
 
@@ -265,43 +290,54 @@ INSERT INTO employees (...) VALUES (1, 'Admin', 'admin@email.com', '123456', 'AD
 
 | Archivo | Líneas | Estado |
 |---------|--------|--------|
-| `application.properties` | 21 | OK, placeholders para credenciales |
-| `pom.xml` | 137 | Spring Boot 4.0.6, Java 25, todas las deps |
-| `data.sql` | 87 | 🔴 Passwords texto plano |
-| `JwtUtil.java` | 27 | 🔴 Secret hardcodeado |
-| `JwtFilter.java` | 79 | 🔴 No autentica |
-| `GlobalExceptionHandler.java` | 88 | 🟡 Falta catch-all |
-| `EmployeeController.java` | 54 | 🟡 Sin DTO, sin @Valid |
-| `AuthenticationController.java` | 37 | 🟡 Sin @Valid, field injection |
-| `Hotel.java` / `HotelRequestDTO.java` | — | 🟡 Falta @Max(5) |
+| `application.properties` | 21 | 🔴 Fallback JWT secret hardcodeado |
+| `pom.xml` | 142 | Spring Boot 4.0.6, Java 25, todas las deps |
+| `data.sql` | 87 | ✅ Passwords BCrypt (corregido) |
+| `JwtUtil.java` | 30 | ✅ Secret vía @Value, 🟠 naming español |
+| `JwtFilter.java` | 75 | ✅ Autentica, 🟡 posible swagger path mismatch |
+| `GlobalExceptionHandler.java` | 104 | 🟡 Falta catch-all Exception |
+| `EmployeeController.java` | 54 | 🔴 Sin DTO, sin @Valid |
+| `AuthenticationController.java` | 37 | ✅ @Valid presente, constructor injection |
+| `TravelService.java` | 113 | 🟡 Queries ineficientes (findAll+stream), shuffle(), regresiones |
+| `HotelRequestDTO.java` | — | 🟡 Falta @Max(5) en stars |
+| `BookingRequestDTO.java` | — | 🟡 Falta @NotEmpty en customerIds, @NotNull en employeeId |
 | `BusRequestDTO.java` | 23 | 🟡 Sin pattern en licensePlate |
-| `DriverRepository.java` | 8 | 🟠 Sin @Repository |
-| `UserResponseDTO.java` | 25 | 🟠 Anotaciones redundantes |
+| `DriverRequestDTO.java` | — | 🟡 Sin @Pattern en phone |
+| `UserResponseDTO.java` | 25 | 🟠 Anotaciones redundantes, userId/id duplicados |
 | `CloudinaryController.java` | 41 | 🟢 Swagger presente |
 | `CloudinaryService.java` | 39 | 🟢 Bien implementado |
-| Tests (10) | ~2100 | 🟢 Buenos en general, 🔴 2 assertions rotas |
+| Tests (22) | ~3500 | ✅ Asserts corregidos, 🔴 mock faltante TripSegment, 🔴 sin DB test |
 
 ---
 
 ## 6. Prioridad de acciones
 
 ### 🔴 Inmediato (día 1)
-1. Mover JWT secret a `application.properties`
-2. Arreglar JwtFilter para que autentique realmente
-3. Hashear passwords en seed data o usar inicializador Java
-4. Arreglar assertions rotas en tests
+1. Quitar fallback hardcodeado del JWT secret en `application.properties` (`:default_secret_change_me`)
+2. Crear Employee DTOs + refactor EmployeeController (entity → DTOs, añadir `@Valid`)
+3. Añadir handler genérico `@ExceptionHandler(Exception.class)` en `GlobalExceptionHandler`
+4. Arreglar mock faltante `findOverlappingByDriver()` en `TripSegmentServiceTest`
+5. Agregar H2/test DB para `G1AgenciaViajesApplicationTests`
 
 ### 🟡 Corto plazo (día 2-3)
-5. Crear Employee DTOs
-6. Añadir `@Valid` donde falta
-7. Añadir handler genérico de Exception
-8. Añadir `@Max(5)` a stars
-9. Arreglar `BookingService.update()` para reconciliar capacidad
-10. Usar repository queries en TravelService
+6. Refactorizar `TravelService` para usar queries derivadas del repositorio (`findByActiveTrue()`, `findByActiveTrueAndStartDateAfter()`, `findBySaleTrueAndActiveTrueAndStartDateAfter()`)
+7. Eliminar `Collections.shuffle()` de los listados (o moverlo a una capa de presentación si es requisito UI)
+8. Arreglar `getAll()` para filtrar solo viajes activos
+9. Arreglar `getOnSale()` para filtrar también por fecha futura
+10. Añadir `@Max(5)` a stars en `HotelRequestDTO`
+11. Añadir `@NotEmpty` en customerIds + `@NotNull` en employeeId de `BookingRequestDTO`
+12. Añadir `@Transactional` a todos los métodos de `EmployeeService`
+13. Arreglar `BookingService.update()` para reconciliar capacidad
+14. Añadir `@Pattern` para teléfono en `DriverRequestDTO`
 
 ### 🟠 Medio plazo (sprint)
-11. Añadir Swagger a todos los controllers
-12. Crear BusMapper
-13. Arreglar typos en mensajes de error
-14. Migrar a constructor injection
-15. Añadir paginación
+15. Añadir Swagger (`@Operation`, `@ApiResponses`) a todos los controllers
+16. Crear BusMapper y eliminar lógica manual de `BusServiceImpl`
+17. Arreglar N+1 queries (usar `findAllById()` en vez de loop `findById()`)
+18. Arreglar typos "l viaje" → "el viaje" en todas las excepciones
+19. Limpiar `UserResponseDTO` (redundancias, userId/id duplicados)
+20. Renombrar métodos/nombres en español a inglés (`algoritmo`→`algorithm`, `reducirPlazas`→`reduceCapacity`, etc.)
+21. Arreglar posible mismatch de ruta Swagger en JwtFilter
+22. Unificar hard delete → soft delete en UserService
+23. Añadir paginación a endpoints GET
+24. Añadir `@Repository` en repositorios que faltan
