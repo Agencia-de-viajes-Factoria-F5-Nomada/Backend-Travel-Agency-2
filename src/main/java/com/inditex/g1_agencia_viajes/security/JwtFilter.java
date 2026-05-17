@@ -18,9 +18,9 @@ import java.io.IOException;
 public class JwtFilter implements Filter {
 
     private final Algorithm algorithm;
- 
-     public JwtFilter(@Value("${jwt.secret}") String secret) {
-         this.algorithm = Algorithm.HMAC256(secret);
+
+    public JwtFilter(@Value("${jwt.secret}") String secret) {
+        this.algorithm = Algorithm.HMAC256(secret);
     }
 
     @Override
@@ -35,7 +35,10 @@ public class JwtFilter implements Filter {
 
         if (path.equals("/api/authentication/login")
                 || path.startsWith("/api-docs")
-                || path.startsWith("/swagger-ui")) {
+                || path.startsWith("/swagger-ui")
+                || (path.startsWith("/api/travels") && method.equals("GET"))
+                || (path.startsWith("/api/hotels") && method.equals("GET"))
+                || (path.startsWith("/api/offers") && method.equals("GET"))) {
             chain.doFilter(request, response);
             return;
         }
