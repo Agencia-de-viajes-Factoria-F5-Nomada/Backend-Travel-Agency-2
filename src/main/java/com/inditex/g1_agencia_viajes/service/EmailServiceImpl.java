@@ -9,6 +9,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@ConditionalOnBean(JavaMailSender.class)
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
@@ -31,7 +33,7 @@ public class EmailServiceImpl implements EmailService {
     private final BookingRepository bookingRepository;
     private final BookingPricingService bookingPricingService;
 
-    @Value("${spring.mail.from}")
+    @Value("${spring.mail.from:no-reply@travelagency.com}")
     private String fromEmail;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
