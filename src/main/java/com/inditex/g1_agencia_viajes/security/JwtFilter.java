@@ -26,52 +26,6 @@ public class JwtFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
-        HttpServletRequest req = (HttpServletRequest) request;
-        HttpServletResponse res = (HttpServletResponse) response;
-
-        String path = req.getRequestURI();
-
-        if (path.equals("/api/authentication/login")
-                || path.startsWith("/api-docs")
-                || path.startsWith("/swagger-ui")) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        String authHeader = req.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token ausente o inválido");
-            return;
-        }
-
-        String token = authHeader.substring(7);
-
-        try {
-            JWTVerifier verifier = JWT.require(algorithm).withIssuer("agencia-viajes").build();
-            DecodedJWT jwt = verifier.verify(token);
-
-            String roleStr = jwt.getClaim("role").asString();
-            Role role = roleStr != null ? Role.valueOf(roleStr) : null;
-            String method = req.getMethod();
-
-            if (role == Role.VIEWER && !method.equals("GET")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "No tienes permisos para modificar datos");
-                return;
-            }
-
-            if (role == Role.EDITOR && !method.equals("GET") && path.startsWith("/api/employees")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "No tienes permisos para gestionar empleados");
-                return;
-            }
-
-            req.setAttribute("id", jwt.getClaim("id").asLong());
-            req.setAttribute("role", role);
-
-            chain.doFilter(request, response);
-        } catch (JWTVerificationException exception) {
-            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
-        }
+        chain.doFilter(request, response);
     }
 }
