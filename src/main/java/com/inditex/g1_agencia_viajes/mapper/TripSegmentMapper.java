@@ -3,9 +3,11 @@ package com.inditex.g1_agencia_viajes.mapper;
 import com.inditex.g1_agencia_viajes.dto.TripSegmentRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TripSegmentResponseDTO;
 import com.inditex.g1_agencia_viajes.model.TripSegment;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface TripSegmentMapper {
@@ -30,5 +32,6 @@ public interface TripSegmentMapper {
     @Mapping(target = "driverName", source = "driver.name")
     TripSegmentResponseDTO toDTO(TripSegment segment);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateFromDto(TripSegmentRequestDTO dto, @MappingTarget TripSegment segment);
 }

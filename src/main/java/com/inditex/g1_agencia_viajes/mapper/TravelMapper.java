@@ -4,9 +4,11 @@ import com.inditex.g1_agencia_viajes.dto.TravelRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TravelResponseDTO;
 import com.inditex.g1_agencia_viajes.model.Hotel;
 import com.inditex.g1_agencia_viajes.model.Travel;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
 public interface TravelMapper {
@@ -28,6 +30,7 @@ public interface TravelMapper {
     @Mapping(target = "fullBoardPrice", source = "hotel.fullBoardPrice")
     TravelResponseDTO toDTO(Travel travel);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "hotel", ignore = true)
     void updateFromDto(TravelRequestDTO dto, @MappingTarget Travel travel);
 }
