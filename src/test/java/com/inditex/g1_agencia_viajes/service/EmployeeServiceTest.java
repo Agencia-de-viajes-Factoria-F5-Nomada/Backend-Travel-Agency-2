@@ -130,22 +130,23 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void deleteEmployee_ShouldDeleteEmployee() {
-        when(employeeRepository.existsById(1L)).thenReturn(true);
+    void deleteEmployee_ShouldSoftDelete() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
         employeeService.deleteEmployee(1L);
 
-        verify(employeeRepository).deleteById(1L);
+        assertThat(employee.getActive()).isFalse();
+        verify(employeeRepository).save(employee);
     }
 
     @Test
     void deleteEmployee_ShouldThrowWhenNotFound() {
-        when(employeeRepository.existsById(99L)).thenReturn(false);
+        when(employeeRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> employeeService.deleteEmployee(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("el empleado");
 
-        verify(employeeRepository, never()).deleteById(any());
+        verify(employeeRepository, never()).save(any());
     }
 }

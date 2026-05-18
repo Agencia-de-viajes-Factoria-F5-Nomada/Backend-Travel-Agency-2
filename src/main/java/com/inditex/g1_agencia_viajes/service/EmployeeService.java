@@ -81,10 +81,10 @@ public class EmployeeService {
 
     @Transactional
     public void deleteEmployee(Long id) {
-        if (!employeeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("el empleado", id);
-        }
-        employeeRepository.deleteById(id);
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("el empleado", id));
+        employee.setActive(false);
+        employeeRepository.save(employee);
     }
 
     private EmployeeResponseDTO toResponseDTO(Employee employee) {
@@ -97,6 +97,7 @@ public class EmployeeService {
         dto.setWorkHour(employee.getWorkHour());
         dto.setHired(employee.getHired());
         dto.setRole(employee.getRole());
+        dto.setActive(employee.getActive());
         return dto;
     }
 

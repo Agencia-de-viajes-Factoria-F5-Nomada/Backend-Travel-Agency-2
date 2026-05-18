@@ -53,6 +53,8 @@ public class Employee {
     @Column(name = "role", nullable = false)
     private Role role;
 
+    private Boolean active = true;
+
     @NotBlank(message = "La contraseña es obligatoria")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column

@@ -14,4 +14,5 @@ public class EmployeeResponseDTO {
     private Integer workHour;
     private Boolean hired;
     private Role role;
+    private Boolean active;
 }
