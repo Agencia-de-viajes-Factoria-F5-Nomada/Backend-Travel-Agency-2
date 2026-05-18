@@ -8,10 +8,14 @@ import com.inditex.g1_agencia_viajes.repository.BookingRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
@@ -23,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @ConditionalOnBean(JavaMailSender.class)
 @RequiredArgsConstructor
@@ -40,8 +45,13 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     @Async
+    @Retryable(
+        retryFor = MessagingException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void sendBookingConfirmation(Long bookingId) {
+    public void sendBookingConfirmation(Long bookingId) throws MessagingException {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("la reserva", bookingId));
 
@@ -63,23 +73,26 @@ public class EmailServiceImpl implements EmailService {
 
         String html = templateEngine.process("email/booking-confirmation", context);
 
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail);
-            helper.setTo(resolveToEmails(booking));
-            helper.setSubject("Confirmación de Reserva #" + booking.getBookingId() + " - " + booking.getTravel().getDestiny());
-            helper.setText(html, true);
+        helper.setFrom(fromEmail);
+        helper.setTo(resolveToEmails(booking));
+        helper.setSubject("Confirmación de Reserva #" + booking.getBookingId() + " - " + booking.getTravel().getDestiny());
+        helper.setText(html, true);
 
-            if (booking.getEmployee() != null && booking.getEmployee().getEmail() != null) {
-                helper.setCc(booking.getEmployee().getEmail());
-            }
-
-            mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Error al enviar el email de confirmación", e);
+        if (booking.getEmployee() != null && booking.getEmployee().getEmail() != null) {
+            helper.setCc(booking.getEmployee().getEmail());
         }
+
+        mailSender.send(message);
+        log.info("Email de confirmación enviado exitosamente para reserva {}", bookingId);
+    }
+
+    @Recover
+    public void recoverFromEmailFailure(MessagingException e, Long bookingId) {
+        log.error("Fallo definitivo al enviar email tras 3 reintentos para reserva {}: {}",
+                 bookingId, e.getMessage());
     }
 
     private String[] resolveToEmails(Booking booking) {
