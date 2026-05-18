@@ -118,11 +118,13 @@ public class BookingService {
         int oldPassengerCount = booking.getCustomers() != null ? booking.getCustomers().size() : 0;
 
         if (oldTravel != null) {
-            oldTravel.setAvailablePlaces(
-                    (oldTravel.getAvailablePlaces() == null ? 0 : oldTravel.getAvailablePlaces()) + oldPassengerCount);
-            travelRepository.save(oldTravel);
-            if (oldTravel.getHotel() != null) {
-                hotelService.releaseCapacity(oldTravel.getHotel().getId(), oldPassengerCount);
+            Travel lockedOldTravel = travelRepository.findByIdForUpdate(oldTravel.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("el viaje", oldTravel.getId()));
+            lockedOldTravel.setAvailablePlaces(
+                    (lockedOldTravel.getAvailablePlaces() == null ? 0 : lockedOldTravel.getAvailablePlaces()) + oldPassengerCount);
+            travelRepository.save(lockedOldTravel);
+            if (lockedOldTravel.getHotel() != null) {
+                hotelService.releaseCapacity(lockedOldTravel.getHotel().getId(), oldPassengerCount);
             }
         }
 
@@ -174,15 +176,17 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
 
-        if (booking.getTravel() != null && booking.getTravel().getHotel() != null) {
-            hotelService.releaseCapacity(booking.getTravel().getHotel().getId(), booking.getCustomers().size());
+        Travel travel = booking.getTravel();
+        if (travel != null && travel.getHotel() != null) {
+            hotelService.releaseCapacity(travel.getHotel().getId(), booking.getCustomers().size());
         }
 
-        Travel travel = booking.getTravel();
         if (travel != null) {
-            int availablePlaces = travel.getAvailablePlaces() == null ? 0 : travel.getAvailablePlaces();
-            travel.setAvailablePlaces(availablePlaces + booking.getCustomers().size());
-            travelRepository.save(travel);
+            Travel lockedTravel = travelRepository.findByIdForUpdate(travel.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("el viaje", travel.getId()));
+            int availablePlaces = lockedTravel.getAvailablePlaces() == null ? 0 : lockedTravel.getAvailablePlaces();
+            lockedTravel.setAvailablePlaces(availablePlaces + booking.getCustomers().size());
+            travelRepository.save(lockedTravel);
         }
 
         bookingRepository.deleteById(id);
@@ -201,19 +205,21 @@ public class BookingService {
             throw new PastTravelException(travel.getId());
         }
         if (travel != null) {
-            int totalPassengers = bookingRepository.countTotalPassengersByTravelId(travel.getId()) + 1;
-            validateBusCapacity(travel.getId(), totalPassengers);
-        }
-        if (travel != null && travel.getHotel() != null) {
-            hotelService.reduceCapacity(travel.getHotel().getId(), 1);
-        }
-        if (travel != null) {
-            int availablePlaces = travel.getAvailablePlaces() == null ? 0 : travel.getAvailablePlaces();
-            if (availablePlaces < 1) {
-                throw new TravelNotAvailableException(travel.getId());
+            Travel lockedTravel = travelRepository.findByIdForUpdate(travel.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("el viaje", travel.getId()));
+            int totalPassengers = bookingRepository.countTotalPassengersByTravelId(lockedTravel.getId()) + 1;
+            validateBusCapacity(lockedTravel.getId(), totalPassengers);
+
+            if (lockedTravel.getHotel() != null) {
+                hotelService.reduceCapacity(lockedTravel.getHotel().getId(), 1);
             }
-            travel.setAvailablePlaces(availablePlaces - 1);
-            travelRepository.save(travel);
+
+            int availablePlaces = lockedTravel.getAvailablePlaces() == null ? 0 : lockedTravel.getAvailablePlaces();
+            if (availablePlaces < 1) {
+                throw new TravelNotAvailableException(lockedTravel.getId());
+            }
+            lockedTravel.setAvailablePlaces(availablePlaces - 1);
+            travelRepository.save(lockedTravel);
         }
 
         booking.getCustomers().add(user);

@@ -85,7 +85,7 @@ public class HotelService {
 
     @Transactional
     public void reduceCapacity(Long id, Integer plazas) {
-        Hotel hotel = hotelRepository.findById(id)
+        Hotel hotel = hotelRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el hotel", id));
         if (hotel.getAvailablePlaces() < plazas) {
             throw new HotelNotAvailableException(id);
@@ -96,7 +96,7 @@ public class HotelService {
 
     @Transactional
     public void releaseCapacity(Long id, Integer plazas) {
-        Hotel hotel = hotelRepository.findById(id)
+        Hotel hotel = hotelRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el hotel", id));
         hotel.setAvailablePlaces(hotel.getAvailablePlaces() + plazas);
         hotelRepository.save(hotel);
