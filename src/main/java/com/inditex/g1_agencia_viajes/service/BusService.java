@@ -44,6 +44,12 @@ public class BusService {
     public BusResponseDTO update(Long id, BusRequestDTO dto) {
         Bus bus = busRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el bus", id));
+
+        if (!bus.getLicensePlate().equals(dto.getLicensePlate())
+                && busRepository.existsByLicensePlate(dto.getLicensePlate())) {
+            throw new DuplicateLicensePlateException(dto.getLicensePlate());
+        }
+
         bus.setLicensePlate(dto.getLicensePlate());
         bus.setCapacity(dto.getCapacity());
         bus.setBath(dto.getBath());
