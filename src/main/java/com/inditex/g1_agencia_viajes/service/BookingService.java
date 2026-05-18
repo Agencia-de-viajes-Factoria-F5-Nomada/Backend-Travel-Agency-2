@@ -5,22 +5,14 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
-import com.inditex.g1_agencia_viajes.exception.BusFullException;
-import com.inditex.g1_agencia_viajes.exception.MinorWithoutTutorException;
-import com.inditex.g1_agencia_viajes.exception.PastTravelException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
-import com.inditex.g1_agencia_viajes.exception.TravelNotAvailableException;
 import com.inditex.g1_agencia_viajes.mapper.BookingMapper;
 import com.inditex.g1_agencia_viajes.model.Booking;
-import com.inditex.g1_agencia_viajes.model.Bus;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.model.Travel;
-import com.inditex.g1_agencia_viajes.model.TripSegment;
 import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.BookingRepository;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
-import com.inditex.g1_agencia_viajes.repository.TravelRepository;
-import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,12 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.ArrayList;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -42,13 +30,13 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
-    private final TravelRepository travelRepository;
     private final EmployeeRepository employeeRepository;
-    private final HotelService hotelService;
     private final BookingPricingService bookingPricingService;
     private final BookingMapper bookingMapper;
-    private final TripSegmentRepository tripSegmentRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    private final BookingValidator bookingValidator;
+    private final TravelCapacityService travelCapacityService;
 
     @Transactional(readOnly = true)
     public Page<BookingResponseDTO> findAll(Pageable pageable) {
@@ -69,120 +57,68 @@ public class BookingService {
         booking.setTypeBoard(dto.getTypeBoard());
         booking.setIsGroup(dto.getIsGroup());
 
-        Travel travel = travelRepository.findByIdForUpdate(dto.getTravelId())
-                .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
-
-        if (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now())) {
-            throw new PastTravelException(travel.getId());
-        }
-
+        Travel travel = bookingValidator.resolveTravelOrThrow(dto.getTravelId());
+        bookingValidator.validateTravelNotPast(travel);
         booking.setTravel(travel);
 
-        if (dto.getEmployeeId() != null) {
-            Employee employee = employeeRepository.findById(dto.getEmployeeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("el empleado", dto.getEmployeeId()));
-            booking.setEmployee(employee);
-        }
+        resolveAndSetEmployee(booking, dto.getEmployeeId());
 
-        List<User> resolvedCustomers = resolveCustomersByIds(dto.getCustomerIds());
-        validateCustomersForBooking(resolvedCustomers);
-        booking.setCustomers(resolvedCustomers);
+        List<User> customers = bookingValidator.resolveCustomersByIds(dto.getCustomerIds());
+        bookingValidator.validateCustomers(customers);
+        booking.setCustomers(customers);
 
-        int numPass = resolvedCustomers.size();
-        int availablePlaces = travel.getAvailablePlaces() == null ? 0 : travel.getAvailablePlaces();
-        if (availablePlaces < numPass) {
-            throw new TravelNotAvailableException(travel.getId());
-        }
+        int numPassengers = customers.size();
+        bookingValidator.validateTravelAvailability(travel, numPassengers);
+        bookingValidator.validateBusCapacity(travel.getId(),
+                bookingRepository.countTotalPassengersByTravelId(travel.getId()) + numPassengers);
 
-        int totalPassengers = bookingRepository.countTotalPassengersByTravelId(travel.getId()) + numPass;
-        validateBusCapacity(travel.getId(), totalPassengers);
+        travelCapacityService.occupyCapacity(travel, numPassengers);
 
-        if (travel.getHotel() != null) {
-            hotelService.reduceCapacity(travel.getHotel().getId(), numPass);
-        }
-        travel.setAvailablePlaces(availablePlaces - numPass);
-        travelRepository.save(travel);
-
-        booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
-        Booking saved = bookingRepository.save(booking);
-        eventPublisher.publishEvent(new BookingCreatedEvent(saved.getBookingId()));
-        return bookingMapper.toDTO(saved);
+        return finalizeBooking(booking);
     }
 
     @Transactional
     public BookingResponseDTO update(Long id, BookingRequestDTO dto) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
+        Booking booking = findBookingOrThrow(id);
 
         Travel oldTravel = booking.getTravel();
-        int oldPassengerCount = booking.getCustomers() != null ? booking.getCustomers().size() : 0;
-
+        int oldPassengerCount = getPassengerCount(booking);
         if (oldTravel != null) {
-            oldTravel.setAvailablePlaces(
-                    (oldTravel.getAvailablePlaces() == null ? 0 : oldTravel.getAvailablePlaces()) + oldPassengerCount);
-            travelRepository.save(oldTravel);
-            if (oldTravel.getHotel() != null) {
-                hotelService.releaseCapacity(oldTravel.getHotel().getId(), oldPassengerCount);
-            }
+            travelCapacityService.releaseCapacity(oldTravel, oldPassengerCount);
         }
 
         booking.setBoughtDate(dto.getBoughtDate());
         booking.setTypeBoard(dto.getTypeBoard());
         booking.setIsGroup(dto.getIsGroup());
 
-        Travel newTravel = travelRepository.findByIdForUpdate(dto.getTravelId())
-                .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
-        if (newTravel.getStartDate().isBefore(LocalDate.now()) || newTravel.getStartDate().isEqual(LocalDate.now())) {
-            throw new PastTravelException(newTravel.getId());
-        }
+        Travel newTravel = bookingValidator.resolveTravelOrThrow(dto.getTravelId());
+        bookingValidator.validateTravelNotPast(newTravel);
         booking.setTravel(newTravel);
 
-        if (dto.getEmployeeId() != null) {
-            Employee employee = employeeRepository.findById(dto.getEmployeeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("el empleado", dto.getEmployeeId()));
-            booking.setEmployee(employee);
-        }
+        resolveAndSetEmployee(booking, dto.getEmployeeId());
 
-        List<User> resolvedCustomers = resolveCustomersByIds(dto.getCustomerIds());
-        validateCustomersForBooking(resolvedCustomers);
-        booking.setCustomers(resolvedCustomers);
-        int newPassengerCount = resolvedCustomers.size();
+        List<User> customers = bookingValidator.resolveCustomersByIds(dto.getCustomerIds());
+        bookingValidator.validateCustomers(customers);
+        booking.setCustomers(customers);
 
-        int availablePlaces = newTravel.getAvailablePlaces() == null ? 0 : newTravel.getAvailablePlaces();
-        if (availablePlaces < newPassengerCount) {
-            throw new TravelNotAvailableException(newTravel.getId());
-        }
+        int newPassengerCount = customers.size();
+        bookingValidator.validateTravelAvailability(newTravel, newPassengerCount);
+        bookingValidator.validateBusCapacity(newTravel.getId(),
+                bookingRepository.countTotalPassengersByTravelId(newTravel.getId())
+                        - oldPassengerCount + newPassengerCount);
 
-        int totalPassengers = bookingRepository.countTotalPassengersByTravelId(newTravel.getId())
-                - oldPassengerCount + newPassengerCount;
-        validateBusCapacity(newTravel.getId(), totalPassengers);
+        travelCapacityService.occupyCapacity(newTravel, newPassengerCount);
 
-        if (newTravel.getHotel() != null) {
-            hotelService.reduceCapacity(newTravel.getHotel().getId(), newPassengerCount);
-        }
-        newTravel.setAvailablePlaces(availablePlaces - newPassengerCount);
-        travelRepository.save(newTravel);
-
-        booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
-        Booking saved = bookingRepository.save(booking);
-        eventPublisher.publishEvent(new BookingCreatedEvent(saved.getBookingId()));
-        return bookingMapper.toDTO(saved);
+        return finalizeBooking(booking);
     }
 
     @Transactional
     public void deleteById(Long id) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
-
-        if (booking.getTravel() != null && booking.getTravel().getHotel() != null) {
-            hotelService.releaseCapacity(booking.getTravel().getHotel().getId(), booking.getCustomers().size());
-        }
+        Booking booking = findBookingOrThrow(id);
 
         Travel travel = booking.getTravel();
         if (travel != null) {
-            int availablePlaces = travel.getAvailablePlaces() == null ? 0 : travel.getAvailablePlaces();
-            travel.setAvailablePlaces(availablePlaces + booking.getCustomers().size());
-            travelRepository.save(travel);
+            travelCapacityService.releaseCapacity(travel, booking.getCustomers().size());
         }
 
         bookingRepository.deleteById(id);
@@ -190,31 +126,21 @@ public class BookingService {
 
     @Transactional
     public void addCustomerToBooking(BookingUserRequestDTO request) {
-        Booking booking = bookingRepository.findById(request.getBookingId())
-                .orElseThrow(() -> new ResourceNotFoundException("la reserva", request.getBookingId()));
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("el usuario", request.getUserId()));
-        validateMinorHasTutor(user);
+        Booking booking = findBookingOrThrow(request.getBookingId());
+        User user = findUserOrThrow(request.getUserId());
+        bookingValidator.validateMinorHasTutor(user);
 
         Travel travel = booking.getTravel();
-        if (travel != null && (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now()))) {
-            throw new PastTravelException(travel.getId());
+        if (travel == null) {
+            return;
         }
-        if (travel != null) {
-            int totalPassengers = bookingRepository.countTotalPassengersByTravelId(travel.getId()) + 1;
-            validateBusCapacity(travel.getId(), totalPassengers);
-        }
-        if (travel != null && travel.getHotel() != null) {
-            hotelService.reduceCapacity(travel.getHotel().getId(), 1);
-        }
-        if (travel != null) {
-            int availablePlaces = travel.getAvailablePlaces() == null ? 0 : travel.getAvailablePlaces();
-            if (availablePlaces < 1) {
-                throw new TravelNotAvailableException(travel.getId());
-            }
-            travel.setAvailablePlaces(availablePlaces - 1);
-            travelRepository.save(travel);
-        }
+
+        bookingValidator.validateTravelNotPast(travel);
+        bookingValidator.validateTravelAvailability(travel, 1);
+        bookingValidator.validateBusCapacity(travel.getId(),
+                bookingRepository.countTotalPassengersByTravelId(travel.getId()) + 1);
+
+        travelCapacityService.occupyCapacity(travel, 1);
 
         booking.getCustomers().add(user);
         booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
@@ -226,47 +152,32 @@ public class BookingService {
         return bookingPricingService.quote(request);
     }
 
-    private void validateCustomersForBooking(List<User> customers) {
-        if (customers == null) {
-            return;
-        }
+    private Booking findBookingOrThrow(Long id) {
+        return bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
+    }
 
-        for (User customer : customers) {
-            validateMinorHasTutor(customer);
+    private User findUserOrThrow(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("el usuario", id));
+    }
+
+    private void resolveAndSetEmployee(Booking booking, Long employeeId) {
+        if (employeeId != null) {
+            Employee employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new ResourceNotFoundException("el empleado", employeeId));
+            booking.setEmployee(employee);
         }
     }
 
-    private void validateMinorHasTutor(User user) {
-        if (user != null
-                && user.getAge() != null
-                && user.getAge() < 18
-                && user.getTutorId() == null) {
-            throw new MinorWithoutTutorException();
-        }
+    private int getPassengerCount(Booking booking) {
+        return booking.getCustomers() != null ? booking.getCustomers().size() : 0;
     }
 
-    private List<User> resolveCustomersByIds(List<Long> customerIds) {
-        if (customerIds == null || customerIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<User> users = userRepository.findAllById(customerIds);
-        for (Long id : customerIds) {
-            if (users.stream().noneMatch(u -> u.getId().equals(id))) {
-                throw new ResourceNotFoundException("el cliente", id);
-            }
-        }
-        return users;
-    }
-
-    private void validateBusCapacity(Long travelId, int totalPassengers) {
-        List<TripSegment> segments = tripSegmentRepository.findByTravelId(travelId);
-        Set<Long> seenBusIds = new HashSet<>();
-        for (TripSegment segment : segments) {
-            Bus bus = segment.getBus();
-            if (bus != null && seenBusIds.add(bus.getId()) && bus.getCapacity() < totalPassengers) {
-                throw new BusFullException(bus.getId(), bus.getLicensePlate());
-            }
-        }
+    private BookingResponseDTO finalizeBooking(Booking booking) {
+        booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
+        Booking saved = bookingRepository.save(booking);
+        eventPublisher.publishEvent(new BookingCreatedEvent(saved.getBookingId()));
+        return bookingMapper.toDTO(saved);
     }
 }
