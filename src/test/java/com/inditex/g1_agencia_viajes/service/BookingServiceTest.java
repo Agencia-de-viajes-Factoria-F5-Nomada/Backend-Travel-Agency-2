@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
@@ -64,8 +65,6 @@ class BookingServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    private BookingMapper bookingMapper;
-
     private BookingService bookingService;
 
     private Booking booking;
@@ -76,7 +75,7 @@ class BookingServiceTest {
 
     @BeforeEach
     void setUp() {
-        bookingMapper = new BookingMapper();
+        BookingMapper bookingMapper = Mappers.getMapper(BookingMapper.class);
         bookingService = new BookingService(bookingRepository, userRepository, travelRepository,
                 employeeRepository, hotelService, bookingPricingService, bookingMapper, tripSegmentRepository, eventPublisher);
 
@@ -125,7 +124,7 @@ class BookingServiceTest {
         Page<BookingResponseDTO> result = bookingService.findAll(Pageable.unpaged());
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getBookingId()).isEqualTo(1L);
+        assertThat(result.getContent().getFirst().getBookingId()).isEqualTo(1L);
     }
 
     @Test
