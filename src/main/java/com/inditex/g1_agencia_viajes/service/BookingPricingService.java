@@ -13,7 +13,6 @@ import com.inditex.g1_agencia_viajes.repository.TravelRepository;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,7 +31,6 @@ public class BookingPricingService {
     private final TravelRepository travelRepository;
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
     public BookingQuoteResponseDTO quote(BookingQuoteRequestDTO request) {
         if (request.getTypeBoard() == null) {
             throw new IllegalArgumentException("El tipo de pensión es obligatorio");
@@ -43,7 +41,6 @@ public class BookingPricingService {
         return buildQuote(travel, request.getTypeBoard(), customers, request.getIsGroup());
     }
 
-    @Transactional(readOnly = true)
     public BookingQuoteResponseDTO generateQuoteFromBooking(Booking booking) {
         if (booking.getTravel() == null) {
             throw new ResourceNotFoundException("el viaje", null);
@@ -58,7 +55,6 @@ public class BookingPricingService {
         return buildQuote(travel, booking.getTypeBoard(), booking.getCustomers(), booking.getIsGroup());
     }
 
-    @Transactional(readOnly = true)
     public Double calculateTotalPrice(Booking booking) {
         if (booking.getTravel() == null) {
             throw new ResourceNotFoundException("el viaje", null);

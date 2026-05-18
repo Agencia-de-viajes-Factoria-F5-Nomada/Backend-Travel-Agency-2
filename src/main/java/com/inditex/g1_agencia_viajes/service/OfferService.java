@@ -37,18 +37,27 @@ public class OfferService {
 
     @Transactional
     public OfferResponseDTO save(OfferRequestDTO dto) {
+        validateDateOrder(dto);
         Offer offer = offerMapper.toEntity(dto);
         return offerMapper.toDTO(offerRepository.save(offer));
     }
 
     @Transactional
     public OfferResponseDTO update(Long id, OfferRequestDTO dto) {
+        validateDateOrder(dto);
         Offer offer = offerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("la oferta", id));
         offer.setDiscountPercentage(dto.getDiscountPercentage());
         offer.setStartDate(dto.getStartDate());
         offer.setEndDate(dto.getEndDate());
         return offerMapper.toDTO(offerRepository.save(offer));
+    }
+
+    private void validateDateOrder(OfferRequestDTO dto) {
+        if (dto.getEndDate().isBefore(dto.getStartDate()) ||
+                dto.getEndDate().isEqual(dto.getStartDate())) {
+            throw new IllegalArgumentException("La fecha de fin debe ser posterior a la de inicio");
+        }
     }
 
     @Transactional

@@ -167,26 +167,6 @@ class TravelServiceTest {
     }
 
     @Test
-    void create_ShouldThrowWhenEndDateBeforeStartDate() {
-        requestDTO.setStartDate(LocalDate.of(2026, 7, 10));
-        requestDTO.setEndDate(LocalDate.of(2026, 7, 1));
-
-        assertThatThrownBy(() -> travelService.create(requestDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("La fecha de fin debe ser posterior");
-    }
-
-    @Test
-    void create_ShouldThrowWhenEndDateEqualsStartDate() {
-        requestDTO.setStartDate(LocalDate.of(2026, 7, 1));
-        requestDTO.setEndDate(LocalDate.of(2026, 7, 1));
-
-        assertThatThrownBy(() -> travelService.create(requestDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("La fecha de fin debe ser posterior");
-    }
-
-    @Test
     void create_ShouldThrowWhenHotelNotFound() {
         when(hotelRepository.findById(99L)).thenReturn(Optional.empty());
         requestDTO.setHotelId(99L);

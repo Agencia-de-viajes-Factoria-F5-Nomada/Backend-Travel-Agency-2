@@ -59,10 +59,6 @@ public class TravelService {
 
     @Transactional
     public TravelResponseDTO create(TravelRequestDTO dto) {
-        if (dto.getEndDate().isBefore(dto.getStartDate()) ||
-                dto.getEndDate().isEqual(dto.getStartDate())) {
-            throw new IllegalArgumentException("La fecha de fin debe ser posterior a la de inicio");
-        }
         Hotel hotel = hotelRepository.findById(dto.getHotelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el hotel", dto.getHotelId()));
         Travel travel = travelMapper.toEntity(dto, hotel);
@@ -73,10 +69,6 @@ public class TravelService {
     public TravelResponseDTO update(Long id, TravelRequestDTO dto) {
         Travel travel = travelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", id));
-        if (dto.getEndDate().isBefore(dto.getStartDate()) ||
-                dto.getEndDate().isEqual(dto.getStartDate())) {
-            throw new IllegalArgumentException("La fecha de fin debe ser posterior a la de inicio");
-        }
         Hotel hotel = hotelRepository.findById(dto.getHotelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el hotel", dto.getHotelId()));
         travel.setDestiny(dto.getDestiny());

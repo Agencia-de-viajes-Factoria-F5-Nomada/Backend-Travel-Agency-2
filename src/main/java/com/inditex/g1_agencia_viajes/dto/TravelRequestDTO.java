@@ -1,5 +1,7 @@
 package com.inditex.g1_agencia_viajes.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -29,4 +31,11 @@ public class TravelRequestDTO {
 
     @NotNull(message = "El hotel es obligatorio")
     private Long hotelId;
+
+    @AssertTrue(message = "La fecha de fin debe ser posterior a la de inicio")
+    @JsonIgnore
+    public boolean isEndDateAfterStartDate() {
+        if (startDate == null || endDate == null) return true;
+        return endDate.isAfter(startDate);
+    }
 }

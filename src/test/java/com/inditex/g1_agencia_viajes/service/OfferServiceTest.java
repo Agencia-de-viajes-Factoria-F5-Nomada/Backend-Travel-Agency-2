@@ -78,6 +78,32 @@ class OfferServiceTest {
     }
 
     @Test
+    void save_ShouldThrowWhenEndDateBeforeStartDate() {
+        OfferRequestDTO dto = new OfferRequestDTO();
+        dto.setStartDate(LocalDate.of(2026, 6, 1));
+        dto.setEndDate(LocalDate.of(2026, 5, 1));
+
+        assertThatThrownBy(() -> offerService.save(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("La fecha de fin debe ser posterior");
+
+        verify(offerRepository, never()).save(any());
+    }
+
+    @Test
+    void save_ShouldThrowWhenEndDateEqualsStartDate() {
+        OfferRequestDTO dto = new OfferRequestDTO();
+        dto.setStartDate(LocalDate.of(2026, 6, 1));
+        dto.setEndDate(LocalDate.of(2026, 6, 1));
+
+        assertThatThrownBy(() -> offerService.save(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("La fecha de fin debe ser posterior");
+
+        verify(offerRepository, never()).save(any());
+    }
+
+    @Test
     void save_ShouldSaveOffer() {
         OfferRequestDTO dto = new OfferRequestDTO();
         dto.setDiscountPercentage(20.0);
@@ -106,6 +132,19 @@ class OfferServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getDiscountPercentage()).isEqualTo(30.0);
+    }
+
+    @Test
+    void update_ShouldThrowWhenEndDateBeforeStartDate() {
+        OfferRequestDTO dto = new OfferRequestDTO();
+        dto.setStartDate(LocalDate.of(2026, 6, 1));
+        dto.setEndDate(LocalDate.of(2026, 5, 1));
+
+        assertThatThrownBy(() -> offerService.update(1L, dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("La fecha de fin debe ser posterior");
+
+        verify(offerRepository, never()).save(any());
     }
 
     @Test
