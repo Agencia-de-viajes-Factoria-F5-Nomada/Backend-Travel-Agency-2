@@ -4,6 +4,7 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.BookingUserRequestDTO;
 import com.inditex.g1_agencia_viajes.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,6 +57,16 @@ public class BookingController {
     public ResponseEntity<BookingResponseDTO> updateBooking(@PathVariable Long id,
                                                             @Valid @RequestBody BookingRequestDTO dto) {
         return ResponseEntity.ok(bookingService.update(id, dto));
+    }
+
+    @PostMapping("/{bookingId}/customers")
+    @Operation(summary = "Añadir un pasajero a una reserva existente")
+    public ResponseEntity<Void> addCustomerToBooking(
+            @PathVariable Long bookingId,
+            @Valid @RequestBody BookingUserRequestDTO request) {
+        request.setBookingId(bookingId);
+        bookingService.addCustomerToBooking(request);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")

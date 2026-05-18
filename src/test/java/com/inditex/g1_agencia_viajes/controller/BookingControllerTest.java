@@ -4,6 +4,7 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.BookingUserRequestDTO;
 import com.inditex.g1_agencia_viajes.service.BookingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,6 +135,36 @@ class BookingControllerTest {
                         .content(json))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(1));
+    }
+
+    @Test
+    void addCustomerToBooking_ShouldReturn200() throws Exception {
+        doNothing().when(bookingService).addCustomerToBooking(any(BookingUserRequestDTO.class));
+
+        String json = """
+                {
+                    "userId": 2
+                }
+                """;
+
+        mockMvc.perform(post("/api/bookings/1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void addCustomerToBooking_WithInvalidBody_ShouldReturn400() throws Exception {
+        String json = """
+                {
+                    "userId": null
+                }
+                """;
+
+        mockMvc.perform(post("/api/bookings/1/customers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

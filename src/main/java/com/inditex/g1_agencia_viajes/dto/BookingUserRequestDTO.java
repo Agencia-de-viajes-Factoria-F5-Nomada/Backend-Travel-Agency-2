@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class BookingUserRequestDTO {
 
-    @NotNull(message = "El ID de la reserva es obligatorio")
     private Long bookingId;
 
     @NotNull(message = "El ID del cliente/usuario es obligatorio")

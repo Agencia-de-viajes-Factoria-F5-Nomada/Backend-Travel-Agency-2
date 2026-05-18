@@ -36,8 +36,13 @@ public class TravelMapper {
             dto.setHotelCity(travel.getHotel().getCity());
             dto.setHotelCountry(travel.getHotel().getCountry());
             dto.setHotelImageUrl(travel.getHotel().getImageUrl());
+            dto.setHotelStars(travel.getHotel().getStars());
             dto.setHalfBoardPrice(travel.getHotel().getHalfBoardPrice());
             dto.setFullBoardPrice(travel.getHotel().getFullBoardPrice());
+        }
+
+        if (travel.getOffer() != null) {
+            dto.setDiscountPercentage(travel.getOffer().getDiscountPercentage());
         }
 
         return dto;
