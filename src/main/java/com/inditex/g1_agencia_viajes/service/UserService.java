@@ -12,9 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class UserService {
 
@@ -63,18 +60,12 @@ public class UserService {
     public UserResponseDTO update(Long id, UserRequestDTO dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el cliente", id));
-        if (dto.getName() != null)     user.setName(dto.getName());
-        if (dto.getSurname() != null)  user.setSurname(dto.getSurname());
-        if (dto.getEmail() != null)    user.setEmail(dto.getEmail());
-        if (dto.getDni() != null)      user.setDni(dto.getDni());
-        if (dto.getPassport() != null) user.setPassport(dto.getPassport());
-        if (dto.getAge() != null)      user.setAge(dto.getAge());
+        userMapper.updateFromDto(dto, user);
         if (dto.getTutorId() != null) {
             User tutor = userRepository.findById(dto.getTutorId())
                     .orElseThrow(() -> new ResourceNotFoundException("el tutor", dto.getTutorId()));
             user.setTutorId(tutor);
         }
-        if (dto.getActive() != null)   user.setActive(dto.getActive());
         return userMapper.toDTO(userRepository.save(user));
     }
 

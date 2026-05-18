@@ -50,12 +50,7 @@ public class BusService {
             throw new DuplicateLicensePlateException(dto.getLicensePlate());
         }
 
-        bus.setLicensePlate(dto.getLicensePlate());
-        bus.setCapacity(dto.getCapacity());
-        bus.setBath(dto.getBath());
-        bus.setWifi(dto.getWifi());
-        bus.setAC(dto.getAC());
-        bus.setUSB(dto.getUSB());
+        busMapper.updateFromDto(dto, bus);
         return busMapper.toDTO(busRepository.save(bus));
     }
 

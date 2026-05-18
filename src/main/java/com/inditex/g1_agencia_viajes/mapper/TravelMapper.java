@@ -4,42 +4,30 @@ import com.inditex.g1_agencia_viajes.dto.TravelRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TravelResponseDTO;
 import com.inditex.g1_agencia_viajes.model.Hotel;
 import com.inditex.g1_agencia_viajes.model.Travel;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
-@Component
-public class TravelMapper {
+@Mapper(componentModel = "spring")
+public interface TravelMapper {
 
-    public Travel toEntity(TravelRequestDTO dto, Hotel hotel) {
-        Travel travel = new Travel();
-        travel.setDestiny(dto.getDestiny());
-        travel.setStartDate(dto.getStartDate());
-        travel.setEndDate(dto.getEndDate());
-        travel.setSale(dto.getSale());
-        travel.setAvailablePlaces(dto.getAvailablePlaces());
+    default Travel toEntity(TravelRequestDTO dto, Hotel hotel) {
+        Travel travel = toEntity(dto);
         travel.setHotel(hotel);
         return travel;
     }
 
-    public TravelResponseDTO toDTO(Travel travel) {
-        TravelResponseDTO dto = new TravelResponseDTO();
-        dto.setId(travel.getId());
-        dto.setDestiny(travel.getDestiny());
-        dto.setStartDate(travel.getStartDate());
-        dto.setEndDate(travel.getEndDate());
-        dto.setSale(travel.getSale());
-        dto.setAvailablePlaces(travel.getAvailablePlaces());
-        dto.setActive(travel.getActive());
+    Travel toEntity(TravelRequestDTO dto);
 
-        if (travel.getHotel() != null) {
-            dto.setHotelId(travel.getHotel().getId());
-            dto.setHotelName(travel.getHotel().getName());
-            dto.setHotelCity(travel.getHotel().getCity());
-            dto.setHotelCountry(travel.getHotel().getCountry());
-            dto.setHotelImageUrl(travel.getHotel().getImageUrl());
-            dto.setHalfBoardPrice(travel.getHotel().getHalfBoardPrice());
-            dto.setFullBoardPrice(travel.getHotel().getFullBoardPrice());
-        }
+    @Mapping(target = "hotelId", source = "hotel.id")
+    @Mapping(target = "hotelName", source = "hotel.name")
+    @Mapping(target = "hotelCity", source = "hotel.city")
+    @Mapping(target = "hotelCountry", source = "hotel.country")
+    @Mapping(target = "hotelImageUrl", source = "hotel.imageUrl")
+    @Mapping(target = "halfBoardPrice", source = "hotel.halfBoardPrice")
+    @Mapping(target = "fullBoardPrice", source = "hotel.fullBoardPrice")
+    TravelResponseDTO toDTO(Travel travel);
 
-        return dto;
-    }
+    @Mapping(target = "hotel", ignore = true)
+    void updateFromDto(TravelRequestDTO dto, @MappingTarget Travel travel);
 }

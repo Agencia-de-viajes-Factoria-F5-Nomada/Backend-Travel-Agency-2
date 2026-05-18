@@ -3,43 +3,35 @@ package com.inditex.g1_agencia_viajes.mapper;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
 import com.inditex.g1_agencia_viajes.model.Booking;
 import com.inditex.g1_agencia_viajes.model.User;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-public class BookingMapper {
+@Mapper(componentModel = "spring")
+public interface BookingMapper {
 
-    public BookingResponseDTO toDTO(Booking booking) {
-        BookingResponseDTO dto = new BookingResponseDTO();
-        dto.setBookingId(booking.getBookingId());
-        dto.setBoughtDate(booking.getBoughtDate());
-        dto.setTypeBoard(booking.getTypeBoard() != null ? booking.getTypeBoard().name() : null);
-        dto.setIsGroup(booking.getIsGroup());
-        dto.setTotalPrice(booking.getTotalPrice());
+    @Mapping(target = "travelId", source = "travel.id")
+    @Mapping(target = "travelDestiny", source = "travel.destiny")
+    @Mapping(target = "customerIds", qualifiedByName = "customersToIds")
+    @Mapping(target = "employeeId", source = "employee.employeeId")
+    BookingResponseDTO toDTO(Booking booking);
 
-        if (booking.getTravel() != null) {
-            dto.setTravelId(booking.getTravel().getId());
-            dto.setTravelDestiny(booking.getTravel().getDestiny());
-        }
-
-        if (booking.getCustomers() != null) {
-            dto.setCustomerIds(booking.getCustomers().stream()
-                    .map(User::getId)
-                    .collect(Collectors.toList()));
-        }
-
-        if (booking.getEmployee() != null) {
-            dto.setEmployeeId(booking.getEmployee().getEmployeeId());
-        }
-
-        return dto;
-    }
-
-    public List<BookingResponseDTO> toDTOList(List<Booking> bookings) {
+    default List<BookingResponseDTO> toDTOList(List<Booking> bookings) {
         return bookings.stream()
                 .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Named("customersToIds")
+    default List<Long> customersToIds(List<User> customers) {
+        if (customers == null) {
+            return null;
+        }
+        return customers.stream()
+                .map(User::getId)
                 .collect(Collectors.toList());
     }
 }

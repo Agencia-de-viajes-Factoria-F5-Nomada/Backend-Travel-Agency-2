@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TravelService {
@@ -79,11 +77,7 @@ public class TravelService {
         }
         Hotel hotel = hotelRepository.findById(dto.getHotelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el hotel", dto.getHotelId()));
-        travel.setDestiny(dto.getDestiny());
-        travel.setStartDate(dto.getStartDate());
-        travel.setEndDate(dto.getEndDate());
-        travel.setSale(dto.getSale());
-        travel.setAvailablePlaces(dto.getAvailablePlaces());
+        travelMapper.updateFromDto(dto, travel);
         travel.setHotel(hotel);
         return travelMapper.toDTO(travelRepository.save(travel));
     }

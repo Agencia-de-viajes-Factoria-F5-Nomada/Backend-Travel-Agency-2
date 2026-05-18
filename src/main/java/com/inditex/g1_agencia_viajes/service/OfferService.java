@@ -12,9 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,9 +43,7 @@ public class OfferService {
     public OfferResponseDTO update(Long id, OfferRequestDTO dto) {
         Offer offer = offerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("la oferta", id));
-        offer.setDiscountPercentage(dto.getDiscountPercentage());
-        offer.setStartDate(dto.getStartDate());
-        offer.setEndDate(dto.getEndDate());
+        offerMapper.updateFromDto(dto, offer);
         return offerMapper.toDTO(offerRepository.save(offer));
     }
 

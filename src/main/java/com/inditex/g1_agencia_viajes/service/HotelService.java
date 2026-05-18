@@ -12,9 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class HotelService {
 
@@ -61,17 +58,7 @@ public class HotelService {
     public HotelResponseDTO update(Long id, HotelRequestDTO dto) {
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el hotel", id));
-        if (dto.getName() != null)            hotel.setName(dto.getName());
-        if (dto.getAddress() != null)         hotel.setAddress(dto.getAddress());
-        if (dto.getCity() != null)            hotel.setCity(dto.getCity());
-        if (dto.getCountry() != null)         hotel.setCountry(dto.getCountry());
-        if (dto.getStars() != null)           hotel.setStars(dto.getStars());
-        if (dto.getCapacity() != null)        hotel.setCapacity(dto.getCapacity());
-        if (dto.getAvailablePlaces() != null) hotel.setAvailablePlaces(dto.getAvailablePlaces());
-        if (dto.getHalfBoardPrice() != null)  hotel.setHalfBoardPrice(dto.getHalfBoardPrice());
-        if (dto.getFullBoardPrice() != null)  hotel.setFullBoardPrice(dto.getFullBoardPrice());
-        if (dto.getImageUrl() != null)        hotel.setImageUrl(dto.getImageUrl());
-        if (dto.getActive() != null)          hotel.setActive(dto.getActive());
+        hotelMapper.updateFromDto(dto, hotel);
         return hotelMapper.toDTO(hotelRepository.save(hotel));
     }
 
