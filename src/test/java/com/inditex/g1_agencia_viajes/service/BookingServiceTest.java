@@ -154,7 +154,7 @@ class BookingServiceTest {
         dto.setTravelId(1L);
         dto.setCustomerIds(List.of(2L));
 
-        when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
+        when(travelRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(travel));
         when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
         when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
@@ -164,7 +164,7 @@ class BookingServiceTest {
         BookingResponseDTO result = bookingService.save(dto);
 
         assertThat(result).isNotNull();
-        verify(travelRepository).findById(1L);
+        verify(travelRepository).findByIdForUpdate(1L);
         verify(userRepository).findAllById(any());
         verify(bookingPricingService).calculateTotalPrice(any(Booking.class));
     }
@@ -181,7 +181,7 @@ class BookingServiceTest {
         dto.setTravelId(1L);
         dto.setCustomerIds(List.of(2L, 3L));
 
-        when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
+        when(travelRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(travel));
         when(userRepository.findAllById(any())).thenReturn(List.of(adultUser, secondAdultUser));
         when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(tripSegmentRepository.findByTravelId(1L)).thenReturn(Collections.emptyList());
@@ -204,7 +204,7 @@ class BookingServiceTest {
         dto.setTravelId(1L);
         dto.setCustomerIds(List.of(2L));
 
-        when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
+        when(travelRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(travel));
         when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         assertThatThrownBy(() -> bookingService.save(dto))
@@ -220,7 +220,7 @@ class BookingServiceTest {
         dto.setTravelId(1L);
         dto.setCustomerIds(List.of(4L));
 
-        when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
+        when(travelRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(travel));
         when(userRepository.findAllById(any())).thenReturn(List.of(minorWithoutTutor));
 
         assertThatThrownBy(() -> bookingService.save(dto))
@@ -244,7 +244,7 @@ class BookingServiceTest {
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
-        when(travelRepository.findById(2L)).thenReturn(Optional.of(newTravel));
+        when(travelRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(newTravel));
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(800.0);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 

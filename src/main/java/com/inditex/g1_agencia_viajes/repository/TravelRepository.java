@@ -1,13 +1,16 @@
 package com.inditex.g1_agencia_viajes.repository;
 
 import com.inditex.g1_agencia_viajes.model.Travel;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TravelRepository extends JpaRepository<Travel, Long> {
@@ -27,7 +30,11 @@ public interface TravelRepository extends JpaRepository<Travel, Long> {
     Page<Travel> findByActiveTrueAndStartDateAfterAndAvailablePlacesGreaterThan(LocalDate date, Integer places, Pageable pageable);
 
     @Query(value = "SELECT YEAR(t.start_date) as yr, COUNT(*) as count " +
-           "FROM travels t WHERE t.active = true " +
-           "GROUP BY YEAR(t.start_date) ORDER BY yr DESC", nativeQuery = true)
+            "FROM travels t WHERE t.active = true " +
+            "GROUP BY YEAR(t.start_date) ORDER BY yr DESC", nativeQuery = true)
     List<Object[]> countTravelsPerYear();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT t FROM Travel t WHERE t.id = :id")
+    Optional<Travel> findByIdForUpdate(Long id);
 }

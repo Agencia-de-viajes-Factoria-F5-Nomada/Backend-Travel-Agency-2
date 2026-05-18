@@ -69,7 +69,7 @@ public class BookingService {
         booking.setTypeBoard(dto.getTypeBoard());
         booking.setIsGroup(dto.getIsGroup());
 
-        Travel travel = travelRepository.findById(dto.getTravelId())
+        Travel travel = travelRepository.findByIdForUpdate(dto.getTravelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
 
         if (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now())) {
@@ -137,7 +137,7 @@ public class BookingService {
         booking.setTypeBoard(dto.getTypeBoard());
         booking.setIsGroup(dto.getIsGroup());
 
-        Travel newTravel = travelRepository.findById(dto.getTravelId())
+        Travel newTravel = travelRepository.findByIdForUpdate(dto.getTravelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
         if (newTravel.getStartDate().isBefore(LocalDate.now()) || newTravel.getStartDate().isEqual(LocalDate.now())) {
             throw new PastTravelException(newTravel.getId());
