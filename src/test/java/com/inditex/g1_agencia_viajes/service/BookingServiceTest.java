@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
@@ -76,7 +77,7 @@ class BookingServiceTest {
 
     @BeforeEach
     void setUp() {
-        bookingMapper = new BookingMapper();
+        bookingMapper = Mappers.getMapper(BookingMapper.class);
         bookingService = new BookingService(bookingRepository, userRepository, travelRepository,
                 employeeRepository, hotelService, bookingPricingService, bookingMapper, tripSegmentRepository, eventPublisher);
 
