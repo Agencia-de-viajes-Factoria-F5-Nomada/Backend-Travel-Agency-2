@@ -132,12 +132,50 @@ class BusServiceTest {
         updateDTO.setUSB(false);
 
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
+        when(busRepository.existsByLicensePlate("XYZ-5678")).thenReturn(false);
         when(busRepository.save(any(Bus.class))).thenReturn(bus);
         when(busMapper.toDTO(bus)).thenReturn(responseDTO);
 
         BusResponseDTO result = busService.update(1L, updateDTO);
 
         assertThat(result).isNotNull();
+    }
+
+    @Test
+    void update_ShouldThrowWhenLicensePlateExists() {
+        BusRequestDTO updateDTO = new BusRequestDTO();
+        updateDTO.setLicensePlate("XYZ-5678");
+        updateDTO.setCapacity(40);
+        updateDTO.setBath(false);
+        updateDTO.setWifi(false);
+        updateDTO.setAC(true);
+        updateDTO.setUSB(false);
+
+        when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
+        when(busRepository.existsByLicensePlate("XYZ-5678")).thenReturn(true);
+
+        assertThatThrownBy(() -> busService.update(1L, updateDTO))
+                .isInstanceOf(DuplicateLicensePlateException.class);
+    }
+
+    @Test
+    void update_ShouldAllowSameLicensePlate() {
+        BusRequestDTO updateDTO = new BusRequestDTO();
+        updateDTO.setLicensePlate("ABC-1234");
+        updateDTO.setCapacity(40);
+        updateDTO.setBath(false);
+        updateDTO.setWifi(false);
+        updateDTO.setAC(true);
+        updateDTO.setUSB(false);
+
+        when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
+        when(busRepository.save(any(Bus.class))).thenReturn(bus);
+        when(busMapper.toDTO(bus)).thenReturn(responseDTO);
+
+        BusResponseDTO result = busService.update(1L, updateDTO);
+
+        assertThat(result).isNotNull();
+        verify(busRepository, never()).existsByLicensePlate(anyString());
     }
 
     @Test

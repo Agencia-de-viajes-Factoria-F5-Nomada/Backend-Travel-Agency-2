@@ -69,7 +69,7 @@ public class BookingService {
         booking.setTypeBoard(dto.getTypeBoard());
         booking.setIsGroup(dto.getIsGroup());
 
-        Travel travel = travelRepository.findById(dto.getTravelId())
+        Travel travel = travelRepository.findByIdForUpdate(dto.getTravelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
 
         if (travel.getStartDate().isBefore(LocalDate.now()) || travel.getStartDate().isEqual(LocalDate.now())) {
@@ -95,14 +95,7 @@ public class BookingService {
         }
 
         int totalPassengers = bookingRepository.countTotalPassengersByTravelId(travel.getId()) + numPass;
-        List<TripSegment> segments = tripSegmentRepository.findByTravelId(travel.getId());
-        Set<Long> seenBusIds = new HashSet<>();
-        for (TripSegment segment : segments) {
-            Bus bus = segment.getBus();
-            if (bus != null && seenBusIds.add(bus.getId()) && bus.getCapacity() < totalPassengers) {
-                throw new BusFullException(bus.getId(), bus.getLicensePlate());
-            }
-        }
+        validateBusCapacity(travel.getId(), totalPassengers);
 
         if (travel.getHotel() != null) {
             hotelService.reduceCapacity(travel.getHotel().getId(), numPass);
@@ -137,7 +130,7 @@ public class BookingService {
         booking.setTypeBoard(dto.getTypeBoard());
         booking.setIsGroup(dto.getIsGroup());
 
-        Travel newTravel = travelRepository.findById(dto.getTravelId())
+        Travel newTravel = travelRepository.findByIdForUpdate(dto.getTravelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", dto.getTravelId()));
         if (newTravel.getStartDate().isBefore(LocalDate.now()) || newTravel.getStartDate().isEqual(LocalDate.now())) {
             throw new PastTravelException(newTravel.getId());
@@ -162,14 +155,7 @@ public class BookingService {
 
         int totalPassengers = bookingRepository.countTotalPassengersByTravelId(newTravel.getId())
                 - oldPassengerCount + newPassengerCount;
-        List<TripSegment> segments = tripSegmentRepository.findByTravelId(newTravel.getId());
-        Set<Long> seenBusIds = new HashSet<>();
-        for (TripSegment segment : segments) {
-            Bus bus = segment.getBus();
-            if (bus != null && seenBusIds.add(bus.getId()) && bus.getCapacity() < totalPassengers) {
-                throw new BusFullException(bus.getId(), bus.getLicensePlate());
-            }
-        }
+        validateBusCapacity(newTravel.getId(), totalPassengers);
 
         if (newTravel.getHotel() != null) {
             hotelService.reduceCapacity(newTravel.getHotel().getId(), newPassengerCount);
@@ -216,14 +202,7 @@ public class BookingService {
         }
         if (travel != null) {
             int totalPassengers = bookingRepository.countTotalPassengersByTravelId(travel.getId()) + 1;
-            List<TripSegment> segments = tripSegmentRepository.findByTravelId(travel.getId());
-            Set<Long> seenBusIds = new HashSet<>();
-            for (TripSegment segment : segments) {
-                Bus bus = segment.getBus();
-                if (bus != null && seenBusIds.add(bus.getId()) && bus.getCapacity() < totalPassengers) {
-                    throw new BusFullException(bus.getId(), bus.getLicensePlate());
-                }
-            }
+            validateBusCapacity(travel.getId(), totalPassengers);
         }
         if (travel != null && travel.getHotel() != null) {
             hotelService.reduceCapacity(travel.getHotel().getId(), 1);
@@ -278,5 +257,16 @@ public class BookingService {
             }
         }
         return users;
+    }
+
+    private void validateBusCapacity(Long travelId, int totalPassengers) {
+        List<TripSegment> segments = tripSegmentRepository.findByTravelId(travelId);
+        Set<Long> seenBusIds = new HashSet<>();
+        for (TripSegment segment : segments) {
+            Bus bus = segment.getBus();
+            if (bus != null && seenBusIds.add(bus.getId()) && bus.getCapacity() < totalPassengers) {
+                throw new BusFullException(bus.getId(), bus.getLicensePlate());
+            }
+        }
     }
 }
