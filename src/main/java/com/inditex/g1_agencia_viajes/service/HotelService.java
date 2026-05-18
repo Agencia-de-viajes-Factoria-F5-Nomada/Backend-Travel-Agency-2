@@ -7,6 +7,7 @@ import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.HotelMapper;
 import com.inditex.g1_agencia_viajes.model.Hotel;
 import com.inditex.g1_agencia_viajes.repository.HotelRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,15 +17,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class HotelService {
 
     private final HotelRepository hotelRepository;
     private final HotelMapper hotelMapper;
-
-    public HotelService(HotelRepository hotelRepository, HotelMapper hotelMapper) {
-        this.hotelRepository = hotelRepository;
-        this.hotelMapper = hotelMapper;
-    }
 
     @Transactional
     public HotelResponseDTO create(HotelRequestDTO dto) {

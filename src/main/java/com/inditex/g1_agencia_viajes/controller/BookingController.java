@@ -9,26 +9,25 @@ import com.inditex.g1_agencia_viajes.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/bookings")
+@RequiredArgsConstructor
 @Tag(name = "Reservas", description = "Gestión de reservas de viajes")
 public class BookingController {
 
     private final BookingService bookingService;
 
-    public BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
-
     @GetMapping
     @Operation(summary = "Obtener todas las reservas")
-    public ResponseEntity<Page<BookingResponseDTO>> getAllBookings(Pageable pageable) {
+    public ResponseEntity<Page<BookingResponseDTO>> getAllBookings(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(bookingService.findAll(pageable));
     }
 

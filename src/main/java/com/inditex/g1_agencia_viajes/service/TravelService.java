@@ -8,6 +8,7 @@ import com.inditex.g1_agencia_viajes.model.Travel;
 import com.inditex.g1_agencia_viajes.repository.HotelRepository;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,19 +19,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class TravelService {
 
     private final TravelRepository travelRepository;
     private final HotelRepository hotelRepository;
     private final TravelMapper travelMapper;
-
-    public TravelService(TravelRepository travelRepository,
-                         HotelRepository hotelRepository,
-                         TravelMapper travelMapper) {
-        this.travelRepository = travelRepository;
-        this.hotelRepository = hotelRepository;
-        this.travelMapper = travelMapper;
-    }
 
     @Transactional(readOnly = true)
     public Page<TravelResponseDTO> getAll(Pageable pageable) {

@@ -6,6 +6,7 @@ import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.DriverMapper;
 import com.inditex.g1_agencia_viajes.model.Driver;
 import com.inditex.g1_agencia_viajes.repository.DriverRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,15 +16,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DriverService {
 
     private final DriverRepository driverRepository;
     private final DriverMapper driverMapper;
-
-    public DriverService(DriverRepository driverRepository, DriverMapper driverMapper) {
-        this.driverRepository = driverRepository;
-        this.driverMapper = driverMapper;
-    }
 
     @Transactional
     public DriverResponseDTO create(DriverRequestDTO dto) {

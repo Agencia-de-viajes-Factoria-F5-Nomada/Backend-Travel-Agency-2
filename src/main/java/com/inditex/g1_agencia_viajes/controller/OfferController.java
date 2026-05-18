@@ -6,26 +6,25 @@ import com.inditex.g1_agencia_viajes.service.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/offers")
+@RequiredArgsConstructor
 @Tag(name = "Ofertas", description = "Gestión de ofertas y descuentos")
 public class OfferController {
 
     private final OfferService offerService;
 
-    public OfferController(OfferService offerService) {
-        this.offerService = offerService;
-    }
-
     @GetMapping
     @Operation(summary = "Obtener todas las ofertas")
-    public ResponseEntity<Page<OfferResponseDTO>> getAll(Pageable pageable) {
+    public ResponseEntity<Page<OfferResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(offerService.findAll(pageable));
     }
 

@@ -6,26 +6,25 @@ import com.inditex.g1_agencia_viajes.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/employees")
+@RequiredArgsConstructor
 @Tag(name = "Empleados", description = "Gestión de empleados de la agencia")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    public EmployeeController(EmployeeService employeeService) {
-        this.employeeService = employeeService;
-    }
-
     @GetMapping
     @Operation(summary = "Obtener todos los empleados")
-    public ResponseEntity<Page<EmployeeResponseDTO>> getAll(Pageable pageable) {
+    public ResponseEntity<Page<EmployeeResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(employeeService.getAllEmployees(pageable));
     }
 

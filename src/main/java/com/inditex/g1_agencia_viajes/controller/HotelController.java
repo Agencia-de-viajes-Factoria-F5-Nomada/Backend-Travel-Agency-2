@@ -6,22 +6,21 @@ import com.inditex.g1_agencia_viajes.service.HotelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/hotels")
+@RequiredArgsConstructor
 @Tag(name = "Hoteles", description = "Gestión de hoteles")
 public class HotelController {
 
     private final HotelService hotelService;
-
-    public HotelController(HotelService hotelService) {
-        this.hotelService = hotelService;
-    }
 
     @PostMapping
     @Operation(summary = "Crear un nuevo hotel")
@@ -31,7 +30,7 @@ public class HotelController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los hoteles")
-    public ResponseEntity<Page<HotelResponseDTO>> getAll(Pageable pageable) {
+    public ResponseEntity<Page<HotelResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(hotelService.getAll(pageable));
     }
 
@@ -43,13 +42,13 @@ public class HotelController {
 
     @GetMapping("/active")
     @Operation(summary = "Obtener hoteles activos")
-    public ResponseEntity<Page<HotelResponseDTO>> getActive(Pageable pageable) {
+    public ResponseEntity<Page<HotelResponseDTO>> getActive(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(hotelService.getActive(pageable));
     }
 
     @GetMapping("/available")
     @Operation(summary = "Obtener hoteles con plazas disponibles")
-    public ResponseEntity<Page<HotelResponseDTO>> getAvailable(Pageable pageable) {
+    public ResponseEntity<Page<HotelResponseDTO>> getAvailable(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(hotelService.getAvailable(pageable));
     }
 

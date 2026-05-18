@@ -3,6 +3,7 @@ package com.inditex.g1_agencia_viajes.service;
 import com.inditex.g1_agencia_viajes.dto.DashboardResponseDTO;
 import com.inditex.g1_agencia_viajes.repository.BookingRepository;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,15 +11,11 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class DashboardService {
 
     private final TravelRepository travelRepository;
     private final BookingRepository bookingRepository;
-
-    public DashboardService(TravelRepository travelRepository, BookingRepository bookingRepository) {
-        this.travelRepository = travelRepository;
-        this.bookingRepository = bookingRepository;
-    }
 
     @Transactional(readOnly = true)
     public DashboardResponseDTO getDashboard() {

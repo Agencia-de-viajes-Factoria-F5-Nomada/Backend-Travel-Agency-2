@@ -6,22 +6,21 @@ import com.inditex.g1_agencia_viajes.service.DriverService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/drivers")
+@RequiredArgsConstructor
 @Tag(name = "Conductores", description = "Gestión de conductores")
 public class DriverController {
 
     private final DriverService driverService;
-
-    public DriverController(DriverService driverService) {
-        this.driverService = driverService;
-    }
 
     @PostMapping
     @Operation(summary = "Crear un nuevo conductor")
@@ -31,7 +30,7 @@ public class DriverController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los conductores")
-    public ResponseEntity<Page<DriverResponseDTO>> getAll(Pageable pageable) {
+    public ResponseEntity<Page<DriverResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(driverService.getAll(pageable));
     }
 
@@ -43,7 +42,7 @@ public class DriverController {
 
     @GetMapping("/active")
     @Operation(summary = "Obtener conductores activos")
-    public ResponseEntity<Page<DriverResponseDTO>> getActive(Pageable pageable) {
+    public ResponseEntity<Page<DriverResponseDTO>> getActive(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(driverService.getActive(pageable));
     }
 
