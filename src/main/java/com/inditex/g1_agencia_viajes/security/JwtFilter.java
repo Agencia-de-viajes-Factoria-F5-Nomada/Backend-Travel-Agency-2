@@ -18,9 +18,9 @@ import java.io.IOException;
 public class JwtFilter implements Filter {
 
     private final Algorithm algorithm;
- 
-     public JwtFilter(@Value("${jwt.secret}") String secret) {
-         this.algorithm = Algorithm.HMAC256(secret);
+
+    public JwtFilter(@Value("${jwt.secret}") String secret) {
+        this.algorithm = Algorithm.HMAC256(secret);
     }
 
     @Override
@@ -31,10 +31,16 @@ public class JwtFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
 
         String path = req.getRequestURI();
+        String method = req.getMethod();
 
-        if (path.equals("/api/authentication/login")
+        if (method.equals("OPTIONS")
+                || path.equals("/api/authentication/login")
                 || path.startsWith("/api-docs")
-                || path.startsWith("/swagger-ui")) {
+                || path.startsWith("/swagger-ui")
+                || path.equals("/api/employees")
+                || path.startsWith("/api/travels")
+                || path.startsWith("/api/hotels")
+                || path.startsWith("/api/offers")) {
             chain.doFilter(request, response);
             return;
         }
@@ -54,7 +60,6 @@ public class JwtFilter implements Filter {
 
             String roleStr = jwt.getClaim("role").asString();
             Role role = roleStr != null ? Role.valueOf(roleStr) : null;
-            String method = req.getMethod();
 
             if (role == Role.VIEWER && !method.equals("GET")) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "No tienes permisos para modificar datos");
