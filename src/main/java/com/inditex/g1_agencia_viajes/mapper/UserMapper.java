@@ -3,38 +3,24 @@ package com.inditex.g1_agencia_viajes.mapper;
 import com.inditex.g1_agencia_viajes.dto.UserRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.UserResponseDTO;
 import com.inditex.g1_agencia_viajes.model.User;
-import org.springframework.stereotype.Component;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValueCheckStrategy;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Component
-public class UserMapper {
+@Mapper(componentModel = "spring")
+public interface UserMapper {
 
-    public User toEntity(UserRequestDTO dto) {
-        User user = new User();
-        user.setName(dto.getName());
-        user.setSurname(dto.getSurname());
-        user.setEmail(dto.getEmail());
-        user.setDni(dto.getDni());
-        user.setPassport(dto.getPassport());
-        user.setAge(dto.getAge());
-        if (dto.getActive() != null) {
-            user.setActive(dto.getActive());
-        }
-        return user;
-    }
+    @Mapping(target = "tutorId", ignore = true)
+    User toEntity(UserRequestDTO dto);
 
-    public UserResponseDTO toDTO(User user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(user.getId());
-        dto.setName(user.getName());
-        dto.setSurname(user.getSurname());
-        dto.setEmail(user.getEmail());
-        dto.setDni(user.getDni());
-        dto.setPassport(user.getPassport());
-        dto.setAge(user.getAge());
-        dto.setActive(user.getActive());
-        if (user.getTutorId() != null) {
-            dto.setTutorId(user.getTutorId().getId());
-        }
-        return dto;
-    }
+    @BeanMapping(nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+    @Mapping(target = "tutorId", source = "tutorId.id")
+    UserResponseDTO toDTO(User user);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "tutorId", ignore = true)
+    void updateFromDto(UserRequestDTO dto, @MappingTarget User user);
 }

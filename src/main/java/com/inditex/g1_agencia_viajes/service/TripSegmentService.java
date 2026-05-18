@@ -91,11 +91,8 @@ public class TripSegmentService {
             );
         }
 
+        tripSegmentMapper.updateFromDto(dto, segment);
         segment.setTravel(travel);
-        segment.setOrigin(dto.getOrigin());
-        segment.setDestination(dto.getDestination());
-        segment.setStartTime(dto.getStartTime());
-        segment.setEndTime(dto.getEndTime());
         segment.setBus(bus);
         segment.setDriver(driver);
         return tripSegmentMapper.toDTO(tripSegmentRepository.save(segment));

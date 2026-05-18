@@ -63,11 +63,7 @@ public class TravelService {
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", id));
         Hotel hotel = hotelRepository.findById(dto.getHotelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el hotel", dto.getHotelId()));
-        travel.setDestiny(dto.getDestiny());
-        travel.setStartDate(dto.getStartDate());
-        travel.setEndDate(dto.getEndDate());
-        travel.setSale(dto.getSale());
-        travel.setAvailablePlaces(dto.getAvailablePlaces());
+        travelMapper.updateFromDto(dto, travel);
         travel.setHotel(hotel);
         return travelMapper.toDTO(travelRepository.save(travel));
     }

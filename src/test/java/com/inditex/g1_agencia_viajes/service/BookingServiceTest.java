@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -58,8 +59,6 @@ class BookingServiceTest {
     @Mock
     private TravelCapacityService travelCapacityService;
 
-    private BookingMapper bookingMapper;
-
     private BookingService bookingService;
 
     private Booking booking;
@@ -70,7 +69,7 @@ class BookingServiceTest {
 
     @BeforeEach
     void setUp() {
-        bookingMapper = new BookingMapper();
+        BookingMapper bookingMapper = Mappers.getMapper(BookingMapper.class);
         bookingService = new BookingService(bookingRepository, userRepository, employeeRepository,
                 bookingPricingService, bookingMapper, eventPublisher, bookingValidator, travelCapacityService);
 
@@ -119,7 +118,7 @@ class BookingServiceTest {
         Page<BookingResponseDTO> result = bookingService.findAll(Pageable.unpaged());
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getBookingId()).isEqualTo(1L);
+        assertThat(result.getContent().getFirst().getBookingId()).isEqualTo(1L);
     }
 
     @Test

@@ -48,11 +48,7 @@ public class DriverService {
     public DriverResponseDTO update(Long id, DriverRequestDTO dto) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el conductor", id));
-        if (dto.getName() != null)          driver.setName(dto.getName());
-        if (dto.getPhone() != null)         driver.setPhone(dto.getPhone());
-        if (dto.getImageUrl() != null)      driver.setImageUrl(dto.getImageUrl());
-        if (dto.getLicenceActive() != null) driver.setLicenceActive(dto.getLicenceActive());
-        if (dto.getActive() != null)        driver.setActive(dto.getActive());
+        driverMapper.updateFromDto(dto, driver);
         return driverMapper.toDTO(driverRepository.save(driver));
     }
 

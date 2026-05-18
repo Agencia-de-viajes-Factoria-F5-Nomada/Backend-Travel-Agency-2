@@ -45,9 +45,7 @@ public class OfferService {
         validateDateOrder(dto);
         Offer offer = offerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("la oferta", id));
-        offer.setDiscountPercentage(dto.getDiscountPercentage());
-        offer.setStartDate(dto.getStartDate());
-        offer.setEndDate(dto.getEndDate());
+        offerMapper.updateFromDto(dto, offer);
         return offerMapper.toDTO(offerRepository.save(offer));
     }
 

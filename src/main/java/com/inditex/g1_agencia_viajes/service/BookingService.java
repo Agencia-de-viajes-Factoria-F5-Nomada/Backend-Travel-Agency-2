@@ -114,7 +114,8 @@ public class BookingService {
 
     @Transactional
     public void deleteById(Long id) {
-        Booking booking = findBookingOrThrow(id);
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
 
         Travel travel = booking.getTravel();
         if (travel != null) {
