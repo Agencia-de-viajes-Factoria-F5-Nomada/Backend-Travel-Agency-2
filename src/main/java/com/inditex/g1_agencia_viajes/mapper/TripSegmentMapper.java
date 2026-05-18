@@ -7,6 +7,7 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(componentModel = "spring")
@@ -25,6 +26,7 @@ public interface TripSegmentMapper {
 
     TripSegment toEntity(TripSegmentRequestDTO dto);
 
+    @BeanMapping(nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
     @Mapping(target = "travelId", source = "travel.id")
     @Mapping(target = "busId", source = "bus.id")
     @Mapping(target = "busLicensePlate", source = "bus.licensePlate")
