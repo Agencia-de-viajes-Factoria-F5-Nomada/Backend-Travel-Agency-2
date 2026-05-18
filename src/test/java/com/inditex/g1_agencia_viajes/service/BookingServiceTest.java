@@ -65,6 +65,8 @@ class BookingServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    private BookingMapper bookingMapper;
+
     private BookingService bookingService;
 
     private Booking booking;
