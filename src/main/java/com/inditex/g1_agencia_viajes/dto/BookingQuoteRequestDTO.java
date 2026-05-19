@@ -18,6 +18,8 @@ public class BookingQuoteRequestDTO {
 
     private Boolean isGroup = false;
 
-    @NotEmpty(message = "Debes indicar al menos un cliente")
-    private List<Long> customerIds;
+    private Long userId;
+
+    @NotEmpty(message = "Debes indicar al menos un pasajero")
+    private List<PassengerRequestDTO> passengers;
 }

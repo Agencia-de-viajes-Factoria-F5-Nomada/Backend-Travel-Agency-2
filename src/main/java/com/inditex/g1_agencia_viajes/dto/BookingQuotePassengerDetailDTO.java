@@ -5,8 +5,8 @@ import lombok.Data;
 @Data
 public class BookingQuotePassengerDetailDTO {
 
-    private Long userId;
-    private String fullName;
+    private String name;
+    private String surname;
     private Integer age;
     private String category;
     private Double basePrice;

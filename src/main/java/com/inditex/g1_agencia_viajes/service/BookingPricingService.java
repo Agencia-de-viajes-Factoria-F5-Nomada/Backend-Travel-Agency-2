@@ -3,6 +3,7 @@ package com.inditex.g1_agencia_viajes.service;
 import com.inditex.g1_agencia_viajes.dto.BookingQuotePassengerDetailDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.PassengerRequestDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.model.Booking;
 import com.inditex.g1_agencia_viajes.model.Hotel;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +26,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingPricingService {
 
-    private static final BigDecimal CHILD_DISCOUNT = BigDecimal.valueOf(15);
-    private static final BigDecimal PENSIONER_DISCOUNT = BigDecimal.valueOf(10);
-    private static final int CHILD_MAX_AGE = 17;
+    // Reglas de tarifa por edad:
+    // 0-2 años  → pagan 5%   (descuento 95%)
+    // 2-11 años → pagan 60%  (descuento 40%)
+    // 12+ años  → pagan 100% (descuento 0%)
+    // Pensionista (65+) → descuento 10% adicional
+
+    private static final int BABY_MAX_AGE      = 2;
+    private static final int CHILD_MAX_AGE     = 11;
     private static final int PENSIONER_MIN_AGE = 65;
+
+    private static final BigDecimal BABY_RATE      = BigDecimal.valueOf(0.05);
+    private static final BigDecimal CHILD_RATE     = BigDecimal.valueOf(0.60);
+    private static final BigDecimal ADULT_RATE     = BigDecimal.valueOf(1.00);
+    private static final BigDecimal PENSIONER_RATE = BigDecimal.valueOf(0.90);
 
     private final TravelRepository travelRepository;
     private final UserRepository userRepository;
@@ -37,8 +50,8 @@ public class BookingPricingService {
         }
         Travel travel = travelRepository.findById(request.getTravelId())
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", request.getTravelId()));
-        List<User> customers = loadUsers(request.getCustomerIds());
-        return buildQuote(travel, request.getTypeBoard(), customers, request.getIsGroup());
+
+        return buildQuoteFromPassengers(travel, request.getTypeBoard(), request.getPassengers(), request.getIsGroup());
     }
 
     public BookingQuoteResponseDTO generateQuoteFromBooking(Booking booking) {
@@ -52,14 +65,11 @@ public class BookingPricingService {
             throw new IllegalArgumentException("Debes indicar al menos un cliente");
         }
         Travel travel = booking.getTravel();
-        return buildQuote(travel, booking.getTypeBoard(), booking.getCustomers(), booking.getIsGroup());
+        return buildQuoteFromUsers(travel, booking.getTypeBoard(), booking.getCustomers(), booking.getIsGroup());
     }
 
     public Double calculateTotalPrice(Booking booking) {
-        if (booking.getTravel() == null) {
-            throw new ResourceNotFoundException("el viaje", null);
-        }
-        if (booking.getTravel().getId() == null) {
+        if (booking.getTravel() == null || booking.getTravel().getId() == null) {
             throw new ResourceNotFoundException("el viaje", null);
         }
         if (booking.getTypeBoard() == null) {
@@ -70,51 +80,100 @@ public class BookingPricingService {
         }
         Travel travel = travelRepository.findById(booking.getTravel().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", booking.getTravel().getId()));
-        BookingQuoteResponseDTO quote = buildQuote(travel, booking.getTypeBoard(), booking.getCustomers(), booking.getIsGroup());
-        return quote.getTotalPrice();
+        return buildQuoteFromUsers(travel, booking.getTypeBoard(), booking.getCustomers(), booking.getIsGroup()).getTotalPrice();
     }
 
-    private List<User> loadUsers(List<Long> customerIds) {
-        if (customerIds == null || customerIds.isEmpty()) {
-            return new ArrayList<>();
+    // ── Quote desde pasajeros del frontend (con birthDate) ────────────────
+    private BookingQuoteResponseDTO buildQuoteFromPassengers(
+            Travel travel, TypeBoard typeBoard,
+            List<PassengerRequestDTO> passengers, Boolean isGroup) {
+
+        if (passengers == null || passengers.isEmpty()) {
+            throw new IllegalArgumentException("Debes indicar al menos un pasajero");
         }
 
-        List<User> users = userRepository.findAllById(customerIds);
-        for (Long id : customerIds) {
-            if (users.stream().noneMatch(u -> u.getId().equals(id))) {
-                throw new ResourceNotFoundException("el cliente", id);
-            }
-        }
-        return users;
-    }
-
-    private BookingQuoteResponseDTO buildQuote(Travel travel, TypeBoard typeBoard, List<User> customers, Boolean isGroup) {
-        if (typeBoard == null) {
-            throw new IllegalArgumentException("El tipo de pensión es obligatorio");
-        }
-        if (customers == null || customers.isEmpty()) {
-            throw new IllegalArgumentException("Debes indicar al menos un cliente");
-        }
-        Hotel hotel = travel.getHotel();
-        if (hotel == null) {
-            throw new ResourceNotFoundException("el hotel", travel.getId());
-        }
-
+        Hotel hotel = resolveHotel(travel);
         BigDecimal basePricePerPassenger = resolveBasePrice(hotel, typeBoard);
-        List<BookingQuotePassengerDetailDTO> passengerDetails = new ArrayList<>();
+
+        List<BookingQuotePassengerDetailDTO> details = new ArrayList<>();
+        BigDecimal totalBeforeDiscount = BigDecimal.ZERO;
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+
+        for (PassengerRequestDTO p : passengers) {
+            int age = calculateAge(p.getBirthDate());
+            BigDecimal offerDiscount = resolveOfferDiscount(travel, basePricePerPassenger);
+            BigDecimal rate = determineRate(age);
+            BigDecimal taxableAmount = basePricePerPassenger.subtract(offerDiscount);
+            BigDecimal finalPrice = taxableAmount.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal categoryDiscount = taxableAmount.subtract(finalPrice);
+
+            BookingQuotePassengerDetailDTO detail = new BookingQuotePassengerDetailDTO();
+            detail.setName(p.getName());
+            detail.setSurname(p.getSurname());
+            detail.setAge(age);
+            detail.setCategory(determineCategory(age));
+            detail.setBasePrice(scale(basePricePerPassenger).doubleValue());
+            detail.setOfferDiscountAmount(scale(offerDiscount).doubleValue());
+            detail.setCategoryDiscountAmount(scale(categoryDiscount).doubleValue());
+            detail.setFinalPrice(scale(finalPrice).doubleValue());
+
+            details.add(detail);
+            totalBeforeDiscount = totalBeforeDiscount.add(basePricePerPassenger);
+            totalDiscount = totalDiscount.add(offerDiscount).add(categoryDiscount);
+        }
+
+        return buildResponse(travel, typeBoard, isGroup, passengers.size(),
+                basePricePerPassenger, totalBeforeDiscount, totalDiscount, details);
+    }
+
+    // ── Quote desde usuarios registrados (flujo admin / interno) ─────────
+    private BookingQuoteResponseDTO buildQuoteFromUsers(
+            Travel travel, TypeBoard typeBoard,
+            List<User> customers, Boolean isGroup) {
+
+        Hotel hotel = resolveHotel(travel);
+        BigDecimal basePricePerPassenger = resolveBasePrice(hotel, typeBoard);
+
+        List<BookingQuotePassengerDetailDTO> details = new ArrayList<>();
         BigDecimal totalBeforeDiscount = BigDecimal.ZERO;
         BigDecimal totalDiscount = BigDecimal.ZERO;
 
         for (User customer : customers) {
-            PassengerPrice passengerPrice = calculatePassengerPrice(customer, basePricePerPassenger, travel);
-            passengerDetails.add(passengerPrice.toDTO());
-            totalBeforeDiscount = totalBeforeDiscount.add(passengerPrice.basePrice);
-            totalDiscount = totalDiscount.add(passengerPrice.offerDiscountAmount)
-                    .add(passengerPrice.categoryDiscountAmount);
+            int age = customer.getAge() != null ? customer.getAge() : 30;
+            BigDecimal offerDiscount = resolveOfferDiscount(travel, basePricePerPassenger);
+            BigDecimal rate = determineRate(age);
+            BigDecimal taxableAmount = basePricePerPassenger.subtract(offerDiscount);
+            BigDecimal finalPrice = taxableAmount.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal categoryDiscount = taxableAmount.subtract(finalPrice);
+
+            BookingQuotePassengerDetailDTO detail = new BookingQuotePassengerDetailDTO();
+            detail.setName(customer.getName());
+            detail.setSurname(customer.getSurname());
+            detail.setAge(age);
+            detail.setCategory(determineCategory(age));
+            detail.setBasePrice(scale(basePricePerPassenger).doubleValue());
+            detail.setOfferDiscountAmount(scale(offerDiscount).doubleValue());
+            detail.setCategoryDiscountAmount(scale(categoryDiscount).doubleValue());
+            detail.setFinalPrice(scale(finalPrice).doubleValue());
+
+            details.add(detail);
+            totalBeforeDiscount = totalBeforeDiscount.add(basePricePerPassenger);
+            totalDiscount = totalDiscount.add(offerDiscount).add(categoryDiscount);
         }
 
+        return buildResponse(travel, typeBoard, isGroup, customers.size(),
+                basePricePerPassenger, totalBeforeDiscount, totalDiscount, details);
+    }
+
+    private BookingQuoteResponseDTO buildResponse(
+            Travel travel, TypeBoard typeBoard, Boolean isGroup,
+            int numPassengers, BigDecimal basePricePerPassenger,
+            BigDecimal totalBeforeDiscount, BigDecimal totalDiscount,
+            List<BookingQuotePassengerDetailDTO> details) {
+
         BigDecimal totalPrice = totalBeforeDiscount.subtract(totalDiscount);
-        if (Boolean.TRUE.equals(isGroup) && customers.size() >= 10) {
+
+        if (Boolean.TRUE.equals(isGroup) && numPassengers >= 10) {
             BigDecimal groupDiscount = totalPrice.multiply(BigDecimal.valueOf(0.05))
                     .setScale(2, RoundingMode.HALF_UP);
             totalDiscount = totalDiscount.add(groupDiscount);
@@ -126,42 +185,44 @@ public class BookingPricingService {
         response.setTravelDestiny(travel.getDestiny());
         response.setTypeBoard(typeBoard);
         response.setIsGroup(Boolean.TRUE.equals(isGroup));
-        response.setPassengers(customers.size());
+        response.setPassengers(numPassengers);
         response.setBasePricePerPassenger(scale(basePricePerPassenger).doubleValue());
         response.setTotalBeforeDiscount(scale(totalBeforeDiscount).doubleValue());
         response.setTotalDiscount(scale(totalDiscount).doubleValue());
         response.setTotalPrice(scale(totalPrice).doubleValue());
-        response.setPassengerDetails(passengerDetails);
+        response.setPassengerDetails(details);
         return response;
+    }
+
+    private int calculateAge(LocalDate birthDate) {
+        if (birthDate == null) return 30;
+        return Period.between(birthDate, LocalDate.now()).getYears();
+    }
+
+    private BigDecimal determineRate(int age) {
+        if (age < BABY_MAX_AGE)      return BABY_RATE;
+        if (age <= CHILD_MAX_AGE)    return CHILD_RATE;
+        if (age >= PENSIONER_MIN_AGE) return PENSIONER_RATE;
+        return ADULT_RATE;
+    }
+
+    private String determineCategory(int age) {
+        if (age < BABY_MAX_AGE)       return "BABY";
+        if (age <= CHILD_MAX_AGE)     return "CHILD";
+        if (age >= PENSIONER_MIN_AGE) return "PENSIONER";
+        return "ADULT";
+    }
+
+    private Hotel resolveHotel(Travel travel) {
+        Hotel hotel = travel.getHotel();
+        if (hotel == null) throw new ResourceNotFoundException("el hotel", travel.getId());
+        return hotel;
     }
 
     private BigDecimal resolveBasePrice(Hotel hotel, TypeBoard typeBoard) {
         Double price = typeBoard == TypeBoard.FULL ? hotel.getFullBoardPrice() : hotel.getHalfBoardPrice();
-        if (price == null) {
-            throw new ResourceNotFoundException("el hotel", hotel.getId());
-        }
+        if (price == null) throw new ResourceNotFoundException("el hotel", hotel.getId());
         return BigDecimal.valueOf(price);
-    }
-
-    private PassengerPrice calculatePassengerPrice(User customer, BigDecimal basePrice, Travel travel) {
-        PassengerPrice passengerPrice = new PassengerPrice();
-        passengerPrice.userId = customer.getId();
-        passengerPrice.fullName = customer.getName() + " " + customer.getSurname();
-        passengerPrice.age = customer.getAge();
-        passengerPrice.basePrice = basePrice;
-
-        BigDecimal discountPercentage = determinePassengerDiscount(customer);
-        BigDecimal offerDiscount = resolveOfferDiscount(travel, basePrice);
-        BigDecimal taxableAmount = basePrice.subtract(offerDiscount);
-        BigDecimal categoryDiscount = taxableAmount.multiply(discountPercentage)
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-
-        passengerPrice.offerDiscountAmount = offerDiscount;
-        passengerPrice.categoryDiscountAmount = categoryDiscount;
-        passengerPrice.discountAmount = offerDiscount.add(categoryDiscount);
-        passengerPrice.finalPrice = taxableAmount.subtract(categoryDiscount);
-        passengerPrice.category = determineCategory(customer);
-        return passengerPrice;
     }
 
     private BigDecimal resolveOfferDiscount(Travel travel, BigDecimal basePrice) {
@@ -174,60 +235,7 @@ public class BookingPricingService {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal determinePassengerDiscount(User customer) {
-        Integer age = customer.getAge();
-        if (age == null) {
-            return BigDecimal.ZERO;
-        }
-        if (age <= CHILD_MAX_AGE) {
-            return CHILD_DISCOUNT;
-        }
-        if (age >= PENSIONER_MIN_AGE) {
-            return PENSIONER_DISCOUNT;
-        }
-        return BigDecimal.ZERO;
-    }
-
-    private String determineCategory(User customer) {
-        Integer age = customer.getAge();
-        if (age == null) {
-            return "UNKNOWN";
-        }
-        if (age <= CHILD_MAX_AGE) {
-            return "CHILD";
-        }
-        if (age >= PENSIONER_MIN_AGE) {
-            return "PENSIONER";
-        }
-        return "ADULT";
-    }
-
     private BigDecimal scale(BigDecimal value) {
         return value.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private final class PassengerPrice {
-        private Long userId;
-        private String fullName;
-        private Integer age;
-        private String category;
-        private BigDecimal basePrice;
-        private BigDecimal offerDiscountAmount;
-        private BigDecimal categoryDiscountAmount;
-        private BigDecimal discountAmount;
-        private BigDecimal finalPrice;
-
-        private BookingQuotePassengerDetailDTO toDTO() {
-            BookingQuotePassengerDetailDTO dto = new BookingQuotePassengerDetailDTO();
-            dto.setUserId(userId);
-            dto.setFullName(fullName);
-            dto.setAge(age);
-            dto.setCategory(category);
-            dto.setBasePrice(scale(basePrice).doubleValue());
-            dto.setOfferDiscountAmount(scale(offerDiscountAmount).doubleValue());
-            dto.setCategoryDiscountAmount(scale(categoryDiscountAmount).doubleValue());
-            dto.setFinalPrice(scale(finalPrice).doubleValue());
-            return dto;
-        }
     }
 }
