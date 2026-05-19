@@ -5,6 +5,7 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
+import com.inditex.g1_agencia_viajes.event.BookingCreatedEvent;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.BookingMapper;
 import com.inditex.g1_agencia_viajes.model.Booking;
@@ -178,7 +179,9 @@ public class BookingService {
     private BookingResponseDTO finalizeBooking(Booking booking) {
         booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
         Booking saved = bookingRepository.save(booking);
+        System.out.println("---- ENVIANDO EVENTO ----");
         eventPublisher.publishEvent(new BookingCreatedEvent(saved.getBookingId()));
+        System.out.println("---- EVENTO ENVIADO ----");
         return bookingMapper.toDTO(saved);
     }
 }

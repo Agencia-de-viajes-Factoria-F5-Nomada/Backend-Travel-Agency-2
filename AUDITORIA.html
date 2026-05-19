@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría — Backend-Travel-Agency-2</title>
+<style>
+  :root { --bg: #0f0f0f; --card: #1a1a2e; --border: #2d2d44; --text: #e0e0e0; --muted: #9999aa; --accent: #e94560; --accent2: #0f3460; --green: #4caf50; --yellow: #ff9800; --red: #f44336; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+  h1 { color: var(--accent); font-size: 2rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
+  h2 { color: var(--accent); margin: 2rem 0 0.75rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); font-size: 1.2rem; }
+  h3 { color: #c0c0d0; margin: 1rem 0 0.5rem; font-size: 1rem; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.875rem; }
+  th { background: var(--accent2); color: #fff; padding: 0.5rem 0.75rem; text-align: left; }
+  td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:hover { background: #1a1a2e88; }
+  code { background: #111; color: #ff6b6b; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.8rem; }
+  pre { background: #111; color: #ff6b6b; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; margin-bottom: 1rem; }
+  .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .badge-green { background: #1b4d1b; color: var(--green); }
+  .badge-yellow { background: #4d3a1b; color: var(--yellow); }
+  .badge-red { background: #4d1b1b; color: var(--red); }
+  .status-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+  .issue { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+  .issue-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-weight: 600; }
+  .file-path { color: var(--muted); font-size: 0.8rem; }
+  .detail { color: var(--muted); font-size: 0.875rem; margin-bottom: 0.75rem; }
+  .fix { color: #90ee90; font-size: 0.875rem; }
+  .fix::before { content: "Fix: "; color: var(--muted); }
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; }
+  .toc a { color: var(--accent); text-decoration: none; font-size: 0.875rem; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; padding-left: 1rem; }
+  .toc li { margin: 0.25rem 0; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+  .endpoint { font-family: monospace; font-size: 0.8rem; padding: 0.25rem 0.5rem; border-radius: 4px; }
+  .method-get { color: #4caf50; }
+  .method-post { color: #2196f3; }
+  .method-put { color: #ff9800; }
+  .method-delete { color: #f44336; }
+  ul { padding-left: 1.5rem; }
+  li { margin: 0.25rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<nav class="toc">
+<strong>Tabla de contenidos</strong>
+<ul>
+  <li><a href="#tech">1. Tech Stack</a></li>
+  <li><a href="#estructura">2. Estructura del Proyecto</a></li>
+  <li><a href="#entidades">3. Entidades y Modelos</a></li>
+  <li><a href="#endpoints">4. Endpoints API</a></li>
+  <li><a href="#servicios">5. Servicios</a></li>
+  <li><a href="#dtos">6. DTOs</a></li>
+  <li><a href="#validaciones">7. Validaciones</a></li>
+  <li><a href="#excepciones">8. Manejo de Excepciones</a></li>
+  <li><a href="#auth">9. Autenticación y Autorización</a></li>
+  <li><a href="#bd">10. Base de Datos</a></li>
+  <li><a href="#cloudinary">11. Cloudinary</a></li>
+  <li><a href="#tests">12. Test Coverage</a></li>
+  <li><a href="#requisitos">13. Verificación de Requisitos</a></li>
+  <li><a href="#issues">14. Issues y Mejoras Pendientes</a></li>
+</ul>
+</nav>
+
+<h1>Auditoría del Repositorio</h1>
+<p class="subtitle">Backend-Travel-Agency-2 &nbsp;|&nbsp; 19 de mayo de 2026 &nbsp;|&nbsp; Agencia de Viajes</p>
+
+<div class="status-row">
+  <span class="badge badge-green">✅ CRUD Completo</span>
+  <span class="badge badge-green">✅ DTOs</span>
+  <span class="badge badge-green">✅ Excepciones</span>
+  <span class="badge badge-green">✅ Cloudinary</span>
+  <span class="badge badge-green">✅ ~30 Tests</span>
+  <span class="badge badge-yellow">⚠ 8 issues pendientes</span>
+</div>
+
+<h2 id="tech">1. Tech Stack</h2>
+<table>
+  <tr><th>Componente</th><th>Tecnología</th><th>Versión</th></tr>
+  <tr><td>Framework</td><td>Spring Boot</td><td>4.0.6</td></tr>
+  <tr><td>Lenguaje</td><td>Java</td><td>25</td></tr>
+  <tr><td>ORM</td><td>Spring Data JPA (Hibernate)</td><td>—</td></tr>
+  <tr><td>Base de datos</td><td>MySQL 8+</td><td>—</td></tr>
+  <tr><td>Testing DB</td><td>H2 in-memory</td><td>—</td></tr>
+  <tr><td>Seguridad</td><td>Auth0 java-jwt + BCrypt</td><td>4.4.0</td></tr>
+  <tr><td>Imágenes</td><td>Cloudinary HTTP45</td><td>1.39.0</td></tr>
+  <tr><td>Documentación</td><td>SpringDoc OpenAPI</td><td>2.8.5</td></tr>
+  <tr><td>Email</td><td>Spring Mail + Thymeleaf</td><td>—</td></tr>
+  <tr><td>Mapeo</td><td>MapStruct</td><td>1.6.3</td></tr>
+  <tr><td>Build</td><td>Maven (wrapper)</td><td>3.9.14</td></tr>
+  <tr><td>Testing</td><td>JUnit 5 + Mockito</td><td>—</td></tr>
+</table>
+
+<h2 id="estructura">2. Estructura del Proyecto</h2>
+<pre>Backend-Travel-Agency-2/
+├── pom.xml
+├── .env / .env.example
+├── README.md
+├── src/main/java/com/inditex/g1_agencia_viajes/
+│   ├── G1AgenciaViajesApplication.java
+│   ├── config/      (Async, Cloudinary, Cors, DataInitializer)
+│   ├── controller/  (12 archivos)
+│   ├── dto/        (24 archivos)
+│   ├── exception/  (11 archivos)
+│   ├── mapper/     (9 archivos)
+│   ├── model/      (12 archivos)
+│   ├── repository/ (9 archivos)
+│   ├── security/   (4 archivos)
+│   └── service/    (14 archivos)
+├── src/main/resources/
+│   ├── application.properties
+│   └── templates/email/booking-confirmation.html
+└── src/test/       (~30 archivos de test)</pre>
+
+<h2 id="entidades">3. Entidades y Modelos</h2>
+
+<h3>3.1 User (Clientes/Usuarios externos)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>id</td><td>Long</td><td>PK</td></tr>
+  <tr><td>name</td><td>String</td><td>@NotBlank</td></tr>
+  <tr><td>surname</td><td>String</td><td>@NotBlank</td></tr>
+  <tr><td>email</td><td>String</td><td>@Email, unique</td></tr>
+  <tr><td>dni</td><td>String</td><td>@Pattern ^[0-9]{8}[A-Z]$</td></tr>
+  <tr><td>passport</td><td>String</td><td>@Pattern ^[A-Z]{3}[0-9]{6}$</td></tr>
+  <tr><td>age</td><td>Integer</td><td>—</td></tr>
+  <tr><td>tutorId</td><td>User (@OneToOne LAZY)</td><td>Para menores</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Soft delete</td></tr>
+  <tr><td>bookings</td><td>List&lt;Booking&gt;</td><td>@ManyToMany</td></tr>
+</table>
+
+<h3>3.2 Employee (Usuarios internos)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>employeeId</td><td>Long</td><td>PK</td></tr>
+  <tr><td>name, surname</td><td>String</td><td>@NotBlank</td></tr>
+  <tr><td>email</td><td>String</td><td>@Email; debe acabar en @nomada.es</td></tr>
+  <tr><td>gender</td><td>Gender</td><td>MALE/FEMALE/NON_BINARY</td></tr>
+  <tr><td>workHour</td><td>Integer</td><td>Horas semanales</td></tr>
+  <tr><td>hired</td><td>Boolean</td><td>@NotNull</td></tr>
+  <tr><td>role</td><td>Role</td><td>VIEWER/EDITOR/ADMIN</td></tr>
+  <tr><td>password</td><td>String</td><td>BCrypt</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Soft delete</td></tr>
+</table>
+
+<h3>3.3 Hotel</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>id</td><td>Long</td><td>PK</td></tr>
+  <tr><td>name, address, city, country</td><td>String</td><td>@NotBlank</td></tr>
+  <tr><td>stars</td><td>Integer</td><td>@Min(1)</td></tr>
+  <tr><td>capacity</td><td>Integer</td><td>Capacidad total</td></tr>
+  <tr><td>availablePlaces</td><td>Integer</td><td>Disponibilidad actual</td></tr>
+  <tr><td>halfBoardPrice / fullBoardPrice</td><td>Double</td><td>@Min(0)</td></tr>
+  <tr><td>imageUrl</td><td>String</td><td>Cloudinary URL</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Soft delete</td></tr>
+</table>
+
+<h3>3.4 Bus (Autobuses)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>id</td><td>Long</td><td>PK</td></tr>
+  <tr><td>licensePlate</td><td>String</td><td>@NotBlank, unique</td></tr>
+  <tr><td>capacity</td><td>Integer</td><td>@NotNull, @Min(1)</td></tr>
+  <tr><td>bath, wifi, AC, USB</td><td>Boolean</td><td>Comodidades</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Soft delete</td></tr>
+</table>
+
+<h3>3.5 Driver (Conductores)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>id</td><td>Long</td><td>PK</td></tr>
+  <tr><td>name, phone</td><td>String</td><td>@NotBlank</td></tr>
+  <tr><td>licenceActive</td><td>Boolean</td><td>Estado licencia</td></tr>
+  <tr><td>imageUrl</td><td>String</td><td>Cloudinary URL</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Soft delete</td></tr>
+</table>
+
+<h3>3.6 Travel (Viajes)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>id</td><td>Long</td><td>PK</td></tr>
+  <tr><td>destiny, startDate, endDate</td><td>String / LocalDate</td><td>@NotBlank, @NotNull</td></tr>
+  <tr><td>sale</td><td>Boolean</td><td>En oferta (default false)</td></tr>
+  <tr><td>availablePlaces</td><td>Integer</td><td>@Min(0)</td></tr>
+  <tr><td>hotel</td><td>Hotel (@ManyToOne)</td><td>Hotel asociado</td></tr>
+  <tr><td>offer</td><td>Offer (@ManyToOne LAZY)</td><td>Oferta aplicada</td></tr>
+  <tr><td>tripSegments</td><td>List&lt;TripSegment&gt;</td><td>@OneToMany cascade ALL</td></tr>
+  <tr><td>bookings</td><td>List&lt;Booking&gt;</td><td>@OneToMany cascade ALL</td></tr>
+  <tr><td>active</td><td>Boolean</td><td>Soft delete</td></tr>
+</table>
+
+<h3>3.7 Offer (Ofertas)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>offerId</td><td>Long</td><td>PK</td></tr>
+  <tr><td>discountPercentage</td><td>Double</td><td>@DecimalMin(0), @DecimalMax(100)</td></tr>
+  <tr><td>startDate, endDate</td><td>LocalDate</td><td>@NotNull</td></tr>
+  <tr><td>travels</td><td>List&lt;Travel&gt;</td><td>@OneToMany</td></tr>
+</table>
+
+<h3>3.8 Booking (Reservas)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>bookingId</td><td>Long</td><td>PK</td></tr>
+  <tr><td>boughtDate</td><td>LocalDateTime</td><td>Timestamp compra</td></tr>
+  <tr><td>typeBoard</td><td>TypeBoard</td><td>HALF/FULL</td></tr>
+  <tr><td>isGroup</td><td>Boolean</td><td>Descuento grupo</td></tr>
+  <tr><td>totalPrice</td><td>Double</td><td>Calculado</td></tr>
+  <tr><td>travel</td><td>Travel (@ManyToOne LAZY)</td><td>Viaje reservado</td></tr>
+  <tr><td>employee</td><td>Employee (@ManyToOne LAZY)</td><td>Empleado gestor</td></tr>
+  <tr><td>customers</td><td>List&lt;User&gt;</td><td>@ManyToMany</td></tr>
+</table>
+
+<h3>3.9 TripSegment (Trayectos)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr>
+  <tr><td>id</td><td>Long</td><td>PK</td></tr>
+  <tr><td>origin, destination</td><td>String</td><td>@NotBlank</td></tr>
+  <tr><td>startTime, endTime</td><td>LocalDateTime</td><td>@NotNull</td></tr>
+  <tr><td>travel</td><td>Travel (@ManyToOne LAZY)</td><td>Viaje asociado</td></tr>
+  <tr><td>bus</td><td>Bus (@ManyToOne)</td><td>Autobús asignado</td></tr>
+  <tr><td>driver</td><td>Driver (@ManyToOne)</td><td>Conductor asignado</td></tr>
+</table>
+
+<h2 id="endpoints">4. Endpoints API</h2>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+</table>
+
+<h3>Authentication `/api/authentication`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/login</td><td>Ninguna</td><td>Login empleado, retorna JWT</td></tr>
+</table>
+
+<h3>Users `/api/users`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>JWT</td><td>Listar todos (paginado)</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>JWT</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/active</td><td>JWT</td><td>Listar activos</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear usuario</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar usuario</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT</td><td>Soft delete</td></tr>
+</table>
+
+<h3>Hotels `/api/hotels`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>Público</td><td>Listar todos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>Público</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/active</td><td>Público</td><td>Listar activos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/available</td><td>Público</td><td>Con plazas disponibles</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear hotel</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar hotel</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT</td><td>Soft delete</td></tr>
+</table>
+
+<h3>Buses `/api/buses`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>JWT</td><td>Listar todos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>JWT</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear autobús</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar autobús</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT</td><td>Soft delete</td></tr>
+</table>
+
+<h3>Drivers `/api/drivers`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>JWT</td><td>Listar todos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>JWT</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/active</td><td>JWT</td><td>Activos solo</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear conductor</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar conductor</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT</td><td>Soft delete</td></tr>
+</table>
+
+<h3>Employees `/api/employees`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>JWT</td><td>Listar todos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>JWT</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT (ADMIN)</td><td>Crear empleado</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT (ADMIN)</td><td>Actualizar empleado</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT (ADMIN)</td><td>Soft delete</td></tr>
+</table>
+
+<h3>Travels `/api/travels`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>Público</td><td>Listar activos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>Público</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/available</td><td>Público</td><td>Futuros con plazas</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/sale</td><td>Público</td><td>Viajes en oferta</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear viaje</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar viaje</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT</td><td>Soft delete</td></tr>
+</table>
+
+<h3>Offers `/api/offers`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>Público</td><td>Listar todos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>Público</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear oferta</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar oferta</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/</td><td>JWT</td><td>Eliminar oferta</td></tr>
+</table>
+
+<h3>Bookings `/api/bookings`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>JWT</td><td>Listar todos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>JWT</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear reserva</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/quote</td><td>JWT</td><td>Presupuesto sin crear</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar reserva</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/{id}/customers</td><td>JWT</td><td>Añadir pasajero</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT</td><td>Cancelar/eliminar</td></tr>
+</table>
+
+<h3>Trip Segments `/api/trip-segments`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>JWT</td><td>Listar todos</td></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/{id}</td><td>JWT</td><td>Obtener por ID</td></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/</td><td>JWT</td><td>Crear trayecto</td></tr>
+  <tr><td><span class="endpoint method-put">PUT</span></td><td>/{id}</td><td>JWT</td><td>Actualizar trayecto</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/{id}</td><td>JWT</td><td>Eliminar trayecto</td></tr>
+</table>
+
+<h3>Dashboard `/api/dashboard`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-get">GET</span></td><td>/</td><td>JWT</td><td>Métricas de negocio</td></tr>
+</table>
+
+<h3>Images `/api/images`</h3>
+<table>
+  <tr><th>Método</th><th>Endpoint</th><th>Auth</th><th>Descripción</th></tr>
+  <tr><td><span class="endpoint method-post">POST</span></td><td>/upload</td><td>JWT</td><td>Subir a Cloudinary</td></tr>
+  <tr><td><span class="endpoint method-delete">DELETE</span></td><td>/delete/{publicId}</td><td>JWT</td><td>Eliminar de Cloudinary</td></tr>
+</table>
+
+<h2 id="servicios">5. Servicios</h2>
+<table>
+  <tr><th>Servicio</th><th>Responsabilidad</th></tr>
+  <tr><td>UserService</td><td>CRUD + soft delete + email uniqueness</td></tr>
+  <tr><td>HotelService</td><td>CRUD + reduceCapacity/releaseCapacity (pessimistic locking)</td></tr>
+  <tr><td>BusService</td><td>CRUD + license plate duplicate check</td></tr>
+  <tr><td>DriverService</td><td>CRUD + soft delete</td></tr>
+  <tr><td>EmployeeService</td><td>CRUD + BCrypt + email domain @nomada.es</td></tr>
+  <tr><td>TravelService</td><td>CRUD + asociación hotel</td></tr>
+  <tr><td>OfferService</td><td>CRUD + validación orden fechas</td></tr>
+  <tr><td>BookingService</td><td>Ciclo completo + gestión pasajeros</td></tr>
+  <tr><td>BookingPricingService</td><td>Motor de precios (bebé 5%, niño 60%, adulto 100%, pensionista 90%; grupo ≥10 -5%; ofertas)</td></tr>
+  <tr><td>BookingValidator</td><td>Menores con tutor, viaje no pasado, disponibilidad, capacidad autobús</td></tr>
+  <tr><td>TripSegmentService</td><td>CRUD + detección overlap conductor</td></tr>
+  <tr><td>CloudinaryService</td><td>Upload (max 10MB, solo imágenes), delete</td></tr>
+  <tr><td>DashboardService</td><td>Viajes/año, ingresos año actual, top 3 viajes</td></tr>
+  <tr><td>EmailService</td><td>Email async con plantilla Thymeleaf tras commit</td></tr>
+  <tr><td>TravelCapacityService</td><td>Gestión atómica capacidad (travel + hotel)</td></tr>
+</table>
+
+<h2 id="dtos">6. DTOs — 24 archivos</h2>
+<table>
+  <tr><th>DTO</th><th>Tipo</th></tr>
+  <tr><td>BookingQuotePassengerDetailDTO / Request / Response</td><td>Request + Response</td></tr>
+  <tr><td>BookingRequestDTO / ResponseDTO / UserRequestDTO</td><td>—</td></tr>
+  <tr><td>BusRequestDTO / ResponseDTO</td><td>—</td></tr>
+  <tr><td>DashboardResponseDTO</td><td>—</td></tr>
+  <tr><td>DriverRequestDTO / ResponseDTO</td><td>—</td></tr>
+  <tr><td>EmployeeRequestDTO / ResponseDTO</td><td>—</td></tr>
+  <tr><td>HotelRequestDTO / ResponseDTO</td><td>—</td></tr>
+  <tr><td>LoginRequest / LoginResponse</td><td>—</td></tr>
+  <tr><td>OfferRequestDTO / ResponseDTO</td><td>—</td></tr>
+  <tr><td>PassengerRequestDTO</td><td>—</td></tr>
+  <tr><td>TravelRequestDTO / ResponseDTO</td><td>—</td></tr>
+  <tr><td>TripSegmentRequestDTO / ResponseDTO</td><td>—</td></tr>
+  <tr><td>UserRequestDTO / ResponseDTO</td><td>—</td></tr>
+</table>
+<p style="color:var(--muted);font-size:0.875rem;margin-top:0.5rem;">Request DTOs usan <code>@Valid</code>. Response DTOs son <code>@Data</code> planos sin validación.</p>
+
+<h2 id="validaciones">7. Validaciones</h2>
+<table>
+  <tr><th>Tipo</th><th>Regla</th><th>Implementación</th></tr>
+  <tr><td>Bean</td><td>@NotBlank, @NotNull, @Email, @Min, @DecimalMin/Max</td><td>En todos los DTOs request</td></tr>
+  <tr><td>Bean</td><td>@Pattern DNI: <code>^[0-9]{8}[A-Z]$</code></td><td>UserRequestDTO</td></tr>
+  <tr><td>Bean</td><td>@Pattern Pasaporte: <code>^[A-Z]{3}[0-9]{6}$</code></td><td>UserRequestDTO</td></tr>
+  <tr><td>Negócio</td><td>Menor sin tutor</td><td>MinorWithoutTutorException</td></tr>
+  <tr><td>Negócio</td><td>Viaje en fecha pasada</td><td>PastTravelException</td></tr>
+  <tr><td>Negócio</td><td>Autobús sin plazas</td><td>BusFullException</td></tr>
+  <tr><td>Negócio</td><td>Hotel sin disponibilidad</td><td>HotelNotAvailableException</td></tr>
+  <tr><td>Negócio</td><td>Matrícula duplicada</td><td>DuplicateLicensePlateException</td></tr>
+  <tr><td>Negócio</td><td>Conductor con solapamiento</td><td>DriverOverlapException</td></tr>
+  <tr><td>Negócio</td><td>Email existente</td><td>EmailAlreadyExistsException</td></tr>
+  <tr><td>Negócio</td><td>Email dominio empleado</td><td>@nomada.es en EmployeeService</td></tr>
+  <tr><td>Negócio</td><td>Fechas oferta ordenadas</td><td>OfferService</td></tr>
+</table>
+
+<h2 id="excepciones">8. Manejo de Excepciones</h2>
+<p class="detail" style="margin-bottom:1rem;"><code>GlobalExceptionHandler</code> (<code>@RestControllerAdvice</code>) cubre todas las excepciones con códigos HTTP apropiados:</p>
+<table>
+  <tr><th>Excepción</th><th>HTTP</th></tr>
+  <tr><td>MethodArgumentNotValidException</td><td style="color:#2196f3;">400 + errores de campo</td></tr>
+  <tr><td>ResourceNotFoundException</td><td style="color:#ff9800;">404</td></tr>
+  <tr><td>HotelNotAvailableException</td><td style="color:#ff9800;">409</td></tr>
+  <tr><td>TravelNotAvailableException</td><td style="color:#ff9800;">409</td></tr>
+  <tr><td>EmailAlreadyExistsException</td><td style="color:#ff9800;">409</td></tr>
+  <tr><td>IllegalArgumentException</td><td style="color:#2196f3;">400</td></tr>
+  <tr><td>MinorWithoutTutorException</td><td style="color:#2196f3;">400</td></tr>
+  <tr><td>DuplicateLicensePlateException</td><td style="color:#ff9800;">409</td></tr>
+  <tr><td>DriverOverlapException</td><td style="color:#ff9800;">409</td></tr>
+  <tr><td>PastTravelException</td><td style="color:#ff9800;">409</td></tr>
+  <tr><td>InvalidFileException</td><td style="color:#2196f3;">400</td></tr>
+  <tr><td>BusFullException</td><td style="color:#ff9800;">409</td></tr>
+  <tr><td>HttpMessageNotReadableException</td><td style="color:#2196f3;">400</td></tr>
+  <tr><td>MethodArgumentTypeMismatchException</td><td style="color:#2196f3;">400</td></tr>
+  <tr><td>Exception (catch-all)</td><td style="color:#f44336;">500</td></tr>
+</table>
+
+<h2 id="auth">9. Autenticación y Autorización</h2>
+<table>
+  <tr><th>Componente</th><th>Detalles</th></tr>
+  <tr><td>Login</td><td>POST /api/authentication/login → BCrypt → JWT (HMAC256, 24h)</td></tr>
+  <tr><td>JwtUtil</td><td>Tokens con claims employeeId, email, role + issuer + issuedAt + expiresAt</td></tr>
+  <tr><td>JwtFilter</td><td>Filter en /api/* — whitelists públicos, valida Bearer, RBAC</td></tr>
+  <tr><td>RBAC</td><td>VIEWER solo GET; EDITOR sin /api/employees write; ADMIN todo</td></tr>
+  <tr><td>LoginRateLimiter</td><td>IP-based brute-force (5 intentos / 15 min → 429)</td></tr>
+  <tr><td>CORS</td><td>Configurado en CorsConfig + SecurityConfig</td></tr>
+</table>
+<p class="detail" style="margin-top:1rem;">Employees seed (DataInitializer): carlos@nomada.es (ADMIN), ana@nomada.es (EDITOR), sofia@nomada.es / david@nomada.es (VIEWER) — password: <code>123456</code></p>
+
+<h2 id="bd">10. Base de Datos</h2>
+<table>
+  <tr><th>Propiedad</th><th>Valor</th></tr>
+  <tr><td>URL</td><td><code>${DB_URL:jdbc:mysql://localhost:3306/travel_agency}</code></td></tr>
+  <tr><td>Dialect</td><td>MySQL 8+</td></tr>
+  <tr><td>ddl-auto</td><td>update</td></tr>
+  <tr><td>.env</td><td>Cargado via spring.config.import</td></tr>
+  <tr><td>Pessimistic locking</td><td>HotelRepository.findByIdForUpdate(), TravelRepository.findByIdForUpdate()</td></tr>
+  <tr><td>Test profile</td><td>H2 jdbc:h2:mem:testdb;MODE=MYSQL</td></tr>
+</table>
+
+<h2 id="cloudinary">11. Cloudinary</h2>
+<table>
+  <tr><th>Componente</th><th>Detalles</th></tr>
+  <tr><td>Config</td><td>CloudinaryConfig carga cloud-name, api-key, api-secret</td></tr>
+  <tr><td>uploadImage</td><td>Valida no vacío, MIME imagen, max 10MB → carpeta travel-agency</td></tr>
+  <tr><td>deleteImage</td><td>Cloudinary destroy API</td></tr>
+  <tr><td>Errores</td><td>InvalidFileException (validación), RuntimeException (I/O)</td></tr>
+  <tr><td>Usado en</td><td>Hotel (imageUrl), Driver (imageUrl)</td></tr>
+</table>
+
+<h2 id="tests">12. Test Coverage</h2>
+<table>
+  <tr><th>Capa</th><th>Cantidad</th><th>Archivos</th></tr>
+  <tr><td>Controller</td><td>11</td><td>Authentication, Booking, Bus, Cloudinary, Driver, Employee, Hotel, Offer, Travel, TripSegment, User</td></tr>
+  <tr><td>Service</td><td>10</td><td>BookingPricing, Booking, Bus, Driver, Employee, Hotel, Offer, Travel, TripSegment, User</td></tr>
+  <tr><td>Repository</td><td>8</td><td>Booking, Bus, Driver, Employee, Hotel, Travel, TripSegment, User</td></tr>
+  <tr><td>Context</td><td>1</td><td>G1AgenciaViajesApplicationTests</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>~30</strong></td><td>—</td></tr>
+</table>
+
+<h2 id="requisitos">13. Verificación de Requisitos</h2>
+<table>
+  <tr><th>Requisito</th><th>Estado</th><th>Notas</th></tr>
+  <tr><td>4 Entidades (Usuarios, Hoteles, Autobuses, Conductores)</td><td><span class="badge badge-green">✅</span></td><td>Implementadas (el proyecto tiene 9 entidades)</td></tr>
+  <tr><td>CRUD todas las entidades</td><td><span class="badge badge-green">✅</span></td><td>Las 9 entidades tienen CRUD completo</td></tr>
+  <tr><td>DTOs</td><td><span class="badge badge-green">✅</span></td><td>24 DTOs con validaciones</td></tr>
+  <tr><td>Manejo de excepciones</td><td><span class="badge badge-green">✅</span></td><td>11 excepciones custom + GlobalExceptionHandler</td></tr>
+  <tr><td>Validaciones</td><td><span class="badge badge-green">✅</span></td><td>Bean Validation + reglas de negocio</td></tr>
+  <tr><td>Cloudinary</td><td><span class="badge badge-green">✅</span></td><td>Upload + delete con validación</td></tr>
+</table>
+
+<h2 id="issues">14. Issues y Mejoras Pendientes</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-red">🔴 Bug</span>
+    <span>Plantilla email referencia campo inexistente</span>
+  </div>
+  <p class="file-path">src/main/resources/templates/email/booking-confirmation.html</p>
+  <p class="detail">La plantilla referencia <code>p.fullName</code> pero <code>BookingQuotePassengerDetailDTO</code> solo tiene <code>name</code> y <code>surname</code> separados. El email renderizará vacío para todos los pasajeros.</p>
+  <p class="fix">Concatenar <code>name + " " + surname</code> en el DTO o modificar la plantilla.</p>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-yellow">🟡 Mejora</span>
+    <span>Sin validación formato matrícula</span>
+  </div>
+  <p class="file-path">BusRequestDTO / Bus.java</p>
+  <p class="detail">El README menciona patrón <code>0000-AAA</code> pero no se valida el formato de la matrícula — solo unicidad.</p>
+  <p class="fix">Añadir <code>@Pattern("^[0-9]{4}-[A-Z]{3}$")</code> al campo licensePlate.</p>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-yellow">🟡 Mejora</span>
+    <span>Redundancia CORS</span>
+  </div>
+  <p class="file-path">CorsConfig.java + SecurityConfig.java</p>
+  <p class="detail">CORS configurado en dos lugares distintos.</p>
+  <p class="fix">Eliminar uno y centralizar la configuración.</p>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-yellow">🟡 Limitación</span>
+    <span>LoginRateLimiter in-memory</span>
+  </div>
+  <p class="file-path">LoginRateLimiter.java</p>
+  <p class="detail">Usa ConcurrentHashMap en memoria — no persiste entre reinicios y no escala horizontalmente.</p>
+  <p class="fix">Usar Redis o persistencia en BD para rate limiting.</p>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-yellow">🟡 Mejora</span>
+    <span>Sin rate limiting general</span>
+  </div>
+  <p class="detail">Solo hay protección brute-force en /login. Otros endpoints no tienen rate limiting.</p>
+  <p class="fix">Considerar @RateLimiter de Resilience4j o similar.</p>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-yellow">🟡 Mejora</span>
+    <span>SecurityConfig no estándar</span>
+  </div>
+  <p class="file-path">security/SecurityConfig.java</p>
+  <p class="detail">Usa filtro manual en lugar de Spring Security DSL estándar. Funcional pero atípico.</p>
+  <p class="fix">Refactorizar a configuración Spring Security convencional.</p>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-yellow">🟡 Mejora</span>
+    <span>Sin paginación en todos los listados</span>
+  </div>
+  <p class="detail">La mayoría de endpoints de listado no tienen límites de página configurables.</p>
+  <p class="fix">Estandarizar paginación con <code>Pageable</code> en todos los listados.</p>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="badge badge-yellow">🟡 Mejora</span>
+    <span>Email deshabilitado por defecto</span>
+  </div>
+  <p class="file-path">application.properties</p>
+  <p class="detail"><code>spring.autoconfigure.exclude=MailSenderAutoConfiguration</code> deshabilita email por defecto. EmailService es @ConditionalOnBean — email nunca se envía sin configuración SMTP.</p>
+  <p class="fix">Documentar que para activar email hay que configurar SMTP en .env.</p>
+</div>
+
+</div>
+</body>
+</html>

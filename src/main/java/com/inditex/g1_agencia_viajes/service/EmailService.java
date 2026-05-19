@@ -1,6 +1,7 @@
 package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
+import com.inditex.g1_agencia_viajes.event.BookingCreatedEvent;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.model.Booking;
 import com.inditex.g1_agencia_viajes.model.TypeBoard;
@@ -10,13 +11,9 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -26,7 +23,6 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-@ConditionalOnBean(JavaMailSender.class)
 @RequiredArgsConstructor
 public class EmailService {
 
@@ -40,9 +36,13 @@ public class EmailService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void sendBookingConfirmation(Long bookingId) {
+//    @Async
+//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+@org.springframework.context.event.EventListener
+    public void sendBookingConfirmation(BookingCreatedEvent event) {
+    System.out.println("---- ¡EVENTO RECIBIDO EN EMAILSERVICE! ----");
+        final Long bookingId= event.bookingId();
+
         try {
             Booking booking = bookingRepository.findById(bookingId)
                     .orElseThrow(() -> new ResourceNotFoundException("la reserva", bookingId));
@@ -80,7 +80,8 @@ public class EmailService {
             mailSender.send(message);
             log.info("Email de confirmación enviado para reserva #{}", booking.getBookingId());
         } catch (Exception e) {
-            log.error("Error al enviar email de confirmación para reserva #{}: {}", bookingId, e.getMessage(), e);
+            log.error("Error al enviar email de confirmación para reserva #{}: {}",
+                    (bookingId != null ? bookingId : "desconocida"), e.getMessage(), e);
         }
     }
 
