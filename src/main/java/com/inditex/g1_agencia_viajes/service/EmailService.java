@@ -36,9 +36,6 @@ public class EmailService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-//    @Async
-//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-@org.springframework.context.event.EventListener
     public void sendBookingConfirmation(BookingCreatedEvent event) {
     System.out.println("---- ¡EVENTO RECIBIDO EN EMAILSERVICE! ----");
         final Long bookingId= event.bookingId();
