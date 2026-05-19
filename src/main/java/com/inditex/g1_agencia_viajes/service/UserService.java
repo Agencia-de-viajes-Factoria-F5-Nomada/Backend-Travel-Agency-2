@@ -13,17 +13,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class
+UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
     @Transactional
     public UserResponseDTO create(UserRequestDTO dto) {
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new EmailAlreadyExistsException(dto.getEmail());
+        Optional<User> existingUser = userRepository.findByEmail(dto.getEmail());
+
+        if (existingUser.isPresent()) {
+            return userMapper.toDTO(existingUser.get());
         }
         User user = userMapper.toEntity(dto);
         if (dto.getTutorId() != null) {

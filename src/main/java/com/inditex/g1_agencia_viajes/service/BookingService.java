@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,14 +55,13 @@ public class BookingService {
     @Transactional
     public BookingResponseDTO save(BookingRequestDTO dto) {
         Booking booking = new Booking();
-        booking.setBoughtDate(dto.getBoughtDate());
+        booking.setBoughtDate(dto.getBoughtDate()!= null ? dto.getBoughtDate() : LocalDate.now().atStartOfDay());
         booking.setTypeBoard(dto.getTypeBoard());
         booking.setIsGroup(dto.getIsGroup());
 
         Travel travel = bookingValidator.resolveTravelOrThrow(dto.getTravelId());
         bookingValidator.validateTravelNotPast(travel);
         booking.setTravel(travel);
-
         resolveAndSetEmployee(booking, dto.getEmployeeId());
 
         List<User> customers = bookingValidator.resolveCustomersByIds(dto.getCustomerIds());
@@ -70,8 +70,9 @@ public class BookingService {
 
         int numPassengers = customers.size();
         bookingValidator.validateTravelAvailability(travel, numPassengers);
-        bookingValidator.validateBusCapacity(travel.getId(),
-                bookingRepository.countTotalPassengersByTravelId(travel.getId()) + numPassengers);
+
+        int currentTotal = bookingRepository.countTotalPassengersByTravelId(travel.getId());
+        bookingValidator.validateBusCapacity(travel.getId(), currentTotal + numPassengers);
 
         travelCapacityService.occupyCapacity(travel, numPassengers);
 
