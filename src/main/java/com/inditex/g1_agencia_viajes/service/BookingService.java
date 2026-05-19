@@ -179,9 +179,7 @@ public class BookingService {
     private BookingResponseDTO finalizeBooking(Booking booking) {
         booking.setTotalPrice(bookingPricingService.calculateTotalPrice(booking));
         Booking saved = bookingRepository.save(booking);
-        System.out.println("---- ENVIANDO EVENTO ----");
         eventPublisher.publishEvent(new BookingCreatedEvent(saved.getBookingId()));
-        System.out.println("---- EVENTO ENVIADO ----");
         return bookingMapper.toDTO(saved);
     }
 }

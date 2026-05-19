@@ -13,7 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -36,11 +41,10 @@ public class EmailService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-//    @Async
-//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-@org.springframework.context.event.EventListener
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void sendBookingConfirmation(BookingCreatedEvent event) {
-    System.out.println("---- ¡EVENTO RECIBIDO EN EMAILSERVICE! ----");
         final Long bookingId= event.bookingId();
 
         try {
