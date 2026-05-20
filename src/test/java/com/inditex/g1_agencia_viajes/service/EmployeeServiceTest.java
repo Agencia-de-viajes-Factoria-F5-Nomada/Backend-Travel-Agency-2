@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.EmployeeRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.EmployeeResponseDTO;
+import com.inditex.g1_agencia_viajes.exception.ForbiddenAccessException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.EmployeeMapper;
 import com.inditex.g1_agencia_viajes.model.Employee;
@@ -11,7 +12,6 @@ import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -32,6 +32,7 @@ class EmployeeServiceTest {
     @Mock
     private EmployeeRepository employeeRepository;
 
+    @Mock
     private EmployeeMapper employeeMapper;
 
     private EmployeeService employeeService;
@@ -41,7 +42,6 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        employeeMapper = Mappers.getMapper(EmployeeMapper.class);
         employeeService = new EmployeeService(employeeRepository, employeeMapper);
 
         employee = new Employee();
@@ -68,17 +68,24 @@ class EmployeeServiceTest {
 
     @Test
     void saveEmployee_ShouldEncryptPasswordAndSave() {
+        when(employeeMapper.toEntity(requestDTO)).thenReturn(employee);
         when(employeeRepository.save(any(Employee.class))).thenAnswer(invocation -> {
             Employee saved = invocation.getArgument(0);
             saved.setEmployeeId(1L);
             return saved;
+        });
+        when(employeeMapper.toDTO(any(Employee.class))).thenAnswer(invocation -> {
+            Employee saved = invocation.getArgument(0);
+            EmployeeResponseDTO dto = new EmployeeResponseDTO();
+            dto.setEmployeeId(saved.getEmployeeId());
+            dto.setName(saved.getName());
+            return dto;
         });
 
         EmployeeResponseDTO result = employeeService.saveEmployee(requestDTO);
 
         assertThat(result).isNotNull();
         assertThat(result.getEmployeeId()).isEqualTo(1L);
-        assertThat(result.getName()).isEqualTo("John");
         verify(employeeRepository).save(any(Employee.class));
     }
 
@@ -105,30 +112,78 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void getAllEmployees_ShouldReturnAllEmployees() {
+    void getAllEmployees_WhenAdmin_ShouldReturnAllEmployees() {
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(employee)));
+        when(employeeMapper.toDTO(employee)).thenAnswer(invocation -> {
+            EmployeeResponseDTO dto = new EmployeeResponseDTO();
+            dto.setEmployeeId(employee.getEmployeeId());
+            dto.setName(employee.getName());
+            return dto;
+        });
 
-        Page<EmployeeResponseDTO> result = employeeService.getAllEmployees(Pageable.unpaged());
+        Page<EmployeeResponseDTO> result = employeeService.getAllEmployees(Pageable.unpaged(), 1L, Role.ADMIN);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getName()).isEqualTo("John");
     }
 
     @Test
-    void getEmployeeById_ShouldReturnEmployee() {
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+    void getAllEmployees_WhenEmployee_ShouldReturnOnlySelf() {
+        EmployeeResponseDTO dto = new EmployeeResponseDTO();
+        dto.setEmployeeId(1L);
+        dto.setName("John");
 
-        EmployeeResponseDTO result = employeeService.getEmployeeById(1L);
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(employeeMapper.toDTO(employee)).thenReturn(dto);
+
+        Page<EmployeeResponseDTO> result = employeeService.getAllEmployees(Pageable.unpaged(), 1L, Role.EMPLOYEE);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getEmployeeId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getEmployeeById_WhenAdmin_ShouldReturnEmployee() {
+        EmployeeResponseDTO dto = new EmployeeResponseDTO();
+        dto.setEmployeeId(1L);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(employeeMapper.toDTO(employee)).thenReturn(dto);
+
+        EmployeeResponseDTO result = employeeService.getEmployeeById(1L, 2L, Role.ADMIN);
 
         assertThat(result).isNotNull();
         assertThat(result.getEmployeeId()).isEqualTo(1L);
     }
 
     @Test
-    void getEmployeeById_ShouldThrowWhenNotFound() {
+    void getEmployeeById_WhenEmployeeOwnId_ShouldReturnEmployee() {
+        EmployeeResponseDTO dto = new EmployeeResponseDTO();
+        dto.setEmployeeId(1L);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(employeeMapper.toDTO(employee)).thenReturn(dto);
+
+        EmployeeResponseDTO result = employeeService.getEmployeeById(1L, 1L, Role.EMPLOYEE);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmployeeId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getEmployeeById_WhenEmployeeOtherId_ShouldThrowForbidden() {
+        assertThatThrownBy(() -> employeeService.getEmployeeById(2L, 1L, Role.EMPLOYEE))
+                .isInstanceOf(ForbiddenAccessException.class)
+                .hasMessageContaining("No tienes permiso para ver los datos de otro empleado");
+
+        verify(employeeRepository, never()).findById(any());
+    }
+
+    @Test
+    void getEmployeeById_WhenNotFound_ShouldThrowResourceNotFound() {
         when(employeeRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> employeeService.getEmployeeById(99L))
+        assertThatThrownBy(() -> employeeService.getEmployeeById(99L, 1L, Role.ADMIN))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("el empleado");
     }

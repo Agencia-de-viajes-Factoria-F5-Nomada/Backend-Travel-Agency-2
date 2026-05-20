@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.controller;
 
 import com.inditex.g1_agencia_viajes.dto.UserRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.UserResponseDTO;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,20 +31,26 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los usuarios")
-    public ResponseEntity<Page<UserResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(userService.getAll(pageable));
+    public ResponseEntity<Page<UserResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable,
+                                                        @RequestAttribute("id") Long currentUserId,
+                                                        @RequestAttribute("role") Role role) {
+        return ResponseEntity.ok(userService.getAll(pageable, currentUserId, role));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Obtener un usuario por ID")
-    public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getById(id));
+    public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id,
+                                                   @RequestAttribute("id") Long currentUserId,
+                                                   @RequestAttribute("role") Role role) {
+        return ResponseEntity.ok(userService.getById(id, currentUserId, role));
     }
 
     @GetMapping("/active")
     @Operation(summary = "Obtener usuarios activos")
-    public ResponseEntity<Page<UserResponseDTO>> getActive(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(userService.getActive(pageable));
+    public ResponseEntity<Page<UserResponseDTO>> getActive(@PageableDefault(size = 20) Pageable pageable,
+                                                           @RequestAttribute("id") Long currentUserId,
+                                                           @RequestAttribute("role") Role role) {
+        return ResponseEntity.ok(userService.getActive(pageable, currentUserId, role));
     }
 
     @PutMapping("/{id}")

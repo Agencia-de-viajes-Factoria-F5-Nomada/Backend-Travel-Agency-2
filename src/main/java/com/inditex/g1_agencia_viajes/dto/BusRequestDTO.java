@@ -19,6 +19,9 @@ public class BusRequestDTO {
 
     private String location;
 
+    @Min(value = 0, message = "Las plazas no pueden ser negativas")
+    private Integer availablePlaces;
+
     private Boolean bath;
     private Boolean wifi;
     private Boolean AC;

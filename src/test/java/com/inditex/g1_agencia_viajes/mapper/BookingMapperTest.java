@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.mapper;
 
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
 import com.inditex.g1_agencia_viajes.model.*;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -16,6 +17,21 @@ class BookingMapperTest {
 
     @Test
     void toDTO_ShouldMapAllFields() {
+        Booking booking = getBooking();
+
+        BookingResponseDTO dto = mapper.toDTO(booking);
+
+        assertThat(dto.getBookingId()).isEqualTo(1L);
+        assertThat(dto.getTravelId()).isEqualTo(1L);
+        assertThat(dto.getTravelDestiny()).isEqualTo("París");
+        assertThat(dto.getCustomerIds()).containsExactly(10L, 20L);
+        assertThat(dto.getEmployeeId()).isEqualTo(100L);
+        assertThat(dto.getTypeBoard()).isEqualTo("HALF");
+        assertThat(dto.getIsGroup()).isFalse();
+        assertThat(dto.getTotalPrice()).isEqualTo(500.0);
+    }
+
+    private static @NonNull Booking getBooking() {
         Travel travel = new Travel();
         travel.setId(1L);
         travel.setDestiny("París");
@@ -39,17 +55,7 @@ class BookingMapperTest {
         booking.setTravel(travel);
         booking.setCustomers(List.of(user1, user2));
         booking.setEmployee(employee);
-
-        BookingResponseDTO dto = mapper.toDTO(booking);
-
-        assertThat(dto.getBookingId()).isEqualTo(1L);
-        assertThat(dto.getTravelId()).isEqualTo(1L);
-        assertThat(dto.getTravelDestiny()).isEqualTo("París");
-        assertThat(dto.getCustomerIds()).containsExactly(10L, 20L);
-        assertThat(dto.getEmployeeId()).isEqualTo(100L);
-        assertThat(dto.getTypeBoard()).isEqualTo(TypeBoard.HALF);
-        assertThat(dto.getIsGroup()).isFalse();
-        assertThat(dto.getTotalPrice()).isEqualTo(500.0);
+        return booking;
     }
 
     @Test

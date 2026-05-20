@@ -137,6 +137,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(ForbiddenAccessException.class)
+    public ResponseEntity<Map<String, String>> handleForbidden(ForbiddenAccessException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllUncaught(Exception ex) {
         Map<String, String> error = new HashMap<>();

@@ -32,6 +32,9 @@ public class Bus {
     @Column(nullable = false)
     private Integer capacity;
 
+    @Min(value = 0, message = "Las plazas no pueden ser negativas")
+    private Integer availablePlaces;
+
     private String location;
 
     private Boolean bath;

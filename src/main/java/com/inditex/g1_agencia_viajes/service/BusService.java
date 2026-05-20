@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.BusRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BusResponseDTO;
+import com.inditex.g1_agencia_viajes.exception.BusFullException;
 import com.inditex.g1_agencia_viajes.exception.DuplicateLicensePlateException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.BusMapper;
@@ -37,7 +38,11 @@ public class BusService {
         if (busRepository.existsByLicensePlate(dto.getLicensePlate())) {
             throw new DuplicateLicensePlateException(dto.getLicensePlate());
         }
-        return busMapper.toDTO(busRepository.save(busMapper.toEntity(dto)));
+        Bus bus = busMapper.toEntity(dto);
+        if (bus.getAvailablePlaces() == null) {
+            bus.setAvailablePlaces(bus.getCapacity());
+        }
+        return busMapper.toDTO(busRepository.save(bus));
     }
 
     @Transactional
@@ -59,6 +64,35 @@ public class BusService {
         Bus bus = busRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el bus", id));
         bus.setActive(false);
+        busRepository.save(bus);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BusResponseDTO> getAvailable(Pageable pageable) {
+        return busRepository.findByAvailablePlacesGreaterThan(0, pageable)
+                .map(busMapper::toDTO);
+    }
+
+    @Transactional
+    public void reduceCapacity(Long id, Integer plazas) {
+        Bus bus = busRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("el bus", id));
+        if (bus.getAvailablePlaces() == null || bus.getAvailablePlaces() < plazas) {
+            throw new BusFullException(bus.getId(), bus.getLicensePlate());
+        }
+        bus.setAvailablePlaces(bus.getAvailablePlaces() - plazas);
+        busRepository.save(bus);
+    }
+
+    @Transactional
+    public void releaseCapacity(Long id, Integer plazas) {
+        Bus bus = busRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("el bus", id));
+        if (bus.getAvailablePlaces() == null) {
+            bus.setAvailablePlaces(plazas);
+        } else {
+            bus.setAvailablePlaces(bus.getAvailablePlaces() + plazas);
+        }
         busRepository.save(bus);
     }
 }

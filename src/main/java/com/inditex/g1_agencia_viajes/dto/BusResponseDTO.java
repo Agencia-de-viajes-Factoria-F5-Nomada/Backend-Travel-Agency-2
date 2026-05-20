@@ -11,6 +11,7 @@ public class BusResponseDTO {
     private String licensePlate;
     private Integer capacity;
     private String location;
+    private Integer availablePlaces;
     private Boolean bath;
     private Boolean wifi;
     private Boolean AC;

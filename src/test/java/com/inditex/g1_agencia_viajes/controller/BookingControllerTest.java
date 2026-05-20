@@ -5,13 +5,13 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingUserRequestDTO;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.service.BookingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -40,9 +42,12 @@ class BookingControllerTest {
 
     @Test
     void getAllBookings_ShouldReturn200() throws Exception {
-        when(bookingService.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(new BookingResponseDTO())));
+        when(bookingService.findAll(any(Pageable.class), anyLong(), eq(Role.ADMIN)))
+                .thenReturn(new PageImpl<>(List.of(new BookingResponseDTO())));
 
-        mockMvc.perform(get("/api/bookings"))
+        mockMvc.perform(get("/api/bookings")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
@@ -51,18 +56,22 @@ class BookingControllerTest {
     void getBookingById_ShouldReturn200() throws Exception {
         BookingResponseDTO dto = new BookingResponseDTO();
         dto.setBookingId(1L);
-        when(bookingService.findById(1L)).thenReturn(Optional.of(dto));
+        when(bookingService.findById(1L, 1L, Role.ADMIN)).thenReturn(Optional.of(dto));
 
-        mockMvc.perform(get("/api/bookings/1"))
+        mockMvc.perform(get("/api/bookings/1")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(1));
     }
 
     @Test
     void getBookingById_ShouldReturn404() throws Exception {
-        when(bookingService.findById(99L)).thenReturn(Optional.empty());
+        when(bookingService.findById(99L, 1L, Role.ADMIN)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/bookings/99"))
+        mockMvc.perform(get("/api/bookings/99")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isNotFound());
     }
 
@@ -70,7 +79,7 @@ class BookingControllerTest {
     void createBooking_ShouldReturn201() throws Exception {
         BookingResponseDTO response = new BookingResponseDTO();
         response.setBookingId(1L);
-        when(bookingService.save(any(BookingRequestDTO.class))).thenReturn(response);
+        when(bookingService.save(any(BookingRequestDTO.class), anyLong(), eq(Role.ADMIN))).thenReturn(response);
 
         String json = """
                 {
@@ -82,6 +91,8 @@ class BookingControllerTest {
 
         mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN)
                         .content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.bookingId").value(1));
@@ -126,7 +137,8 @@ class BookingControllerTest {
     void updateBooking_ShouldReturn200() throws Exception {
         BookingResponseDTO response = new BookingResponseDTO();
         response.setBookingId(1L);
-        when(bookingService.update(any(), any(BookingRequestDTO.class))).thenReturn(response);
+        when(bookingService.update(any(), any(BookingRequestDTO.class), anyLong(), eq(Role.ADMIN)))
+                .thenReturn(response);
 
         String json = """
                 {
@@ -138,6 +150,8 @@ class BookingControllerTest {
 
         mockMvc.perform(put("/api/bookings/1")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN)
                         .content(json))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(1));
@@ -145,7 +159,7 @@ class BookingControllerTest {
 
     @Test
     void addCustomerToBooking_ShouldReturn200() throws Exception {
-        doNothing().when(bookingService).addCustomerToBooking(any(BookingUserRequestDTO.class));
+        doNothing().when(bookingService).addCustomerToBooking(any(BookingUserRequestDTO.class), anyLong(), eq(Role.ADMIN));
 
         String json = """
                 {
@@ -155,6 +169,8 @@ class BookingControllerTest {
 
         mockMvc.perform(post("/api/bookings/1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN)
                         .content(json))
                 .andExpect(status().isOk());
     }
@@ -169,15 +185,19 @@ class BookingControllerTest {
 
         mockMvc.perform(post("/api/bookings/1/customers")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN)
                         .content(json))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void deleteBooking_ShouldReturn204() throws Exception {
-        doNothing().when(bookingService).deleteById(1L);
+        doNothing().when(bookingService).deleteById(1L, 1L, Role.ADMIN);
 
-        mockMvc.perform(delete("/api/bookings/1"))
+        mockMvc.perform(delete("/api/bookings/1")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isNoContent());
     }
 }

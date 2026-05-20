@@ -3,6 +3,7 @@ package com.inditex.g1_agencia_viajes.controller;
 import com.inditex.g1_agencia_viajes.dto.UserRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.UserResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -14,13 +15,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -41,9 +41,12 @@ class UserControllerTest {
 
     @Test
     void getAll_ShouldReturn200() throws Exception {
-        when(userService.getAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(new UserResponseDTO())));
+        when(userService.getAll(any(Pageable.class), anyLong(), eq(Role.ADMIN)))
+                .thenReturn(new PageImpl<>(List.of(new UserResponseDTO())));
 
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(get("/api/users")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
@@ -53,9 +56,12 @@ class UserControllerTest {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(1L);
         dto.setName("John");
-        when(userService.getById(1L)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/users/1"))
+        when(userService.getById(1L, 1L, Role.ADMIN)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/users/1")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("John"));
@@ -63,17 +69,23 @@ class UserControllerTest {
 
     @Test
     void getById_ShouldReturn404() throws Exception {
-        when(userService.getById(99L)).thenThrow(new ResourceNotFoundException("el usuario", 99L));
+        when(userService.getById(99L, 1L, Role.ADMIN))
+                .thenThrow(new ResourceNotFoundException("el usuario", 99L));
 
-        mockMvc.perform(get("/api/users/99"))
+        mockMvc.perform(get("/api/users/99")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void getActive_ShouldReturn200() throws Exception {
-        when(userService.getActive(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(new UserResponseDTO())));
+        when(userService.getActive(any(Pageable.class), anyLong(), eq(Role.ADMIN)))
+                .thenReturn(new PageImpl<>(List.of(new UserResponseDTO())));
 
-        mockMvc.perform(get("/api/users/active"))
+        mockMvc.perform(get("/api/users/active")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }

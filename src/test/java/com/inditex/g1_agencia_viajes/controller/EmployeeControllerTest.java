@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -47,9 +49,12 @@ class EmployeeControllerTest {
         EmployeeResponseDTO dto = new EmployeeResponseDTO();
         dto.setEmployeeId(1L);
         dto.setName("Carlos");
-        when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(dto)));
+        when(employeeService.getAllEmployees(any(Pageable.class), anyLong(), eq(Role.ADMIN)))
+                .thenReturn(new PageImpl<>(List.of(dto)));
 
-        mockMvc.perform(get("/api/employees"))
+        mockMvc.perform(get("/api/employees")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
@@ -60,19 +65,23 @@ class EmployeeControllerTest {
         dto.setEmployeeId(1L);
         dto.setName("Carlos");
         dto.setEmail("carlos@nomada.es");
-        when(employeeService.getEmployeeById(1L)).thenReturn(dto);
+        when(employeeService.getEmployeeById(1L, 1L, Role.ADMIN)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/employees/1"))
+        mockMvc.perform(get("/api/employees/1")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Carlos"));
     }
 
     @Test
     void getById_ShouldReturn404() throws Exception {
-        when(employeeService.getEmployeeById(99L))
+        when(employeeService.getEmployeeById(99L, 1L, Role.ADMIN))
                 .thenThrow(new ResourceNotFoundException("el empleado", 99L));
 
-        mockMvc.perform(get("/api/employees/99"))
+        mockMvc.perform(get("/api/employees/99")
+                        .requestAttr("id", 1L)
+                        .requestAttr("role", Role.ADMIN))
                 .andExpect(status().isNotFound());
     }
 

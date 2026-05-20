@@ -2,15 +2,15 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.UserRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.UserResponseDTO;
-import com.inditex.g1_agencia_viajes.exception.EmailAlreadyExistsException;
+import com.inditex.g1_agencia_viajes.exception.ForbiddenAccessException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.UserMapper;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -32,6 +32,7 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
     private UserMapper userMapper;
 
     private UserService userService;
@@ -43,7 +44,6 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userMapper = Mappers.getMapper(UserMapper.class);
         userService = new UserService(userRepository, userMapper);
 
         tutor = new User();
@@ -84,7 +84,9 @@ class UserServiceTest {
     @Test
     void create_ShouldReturnUserResponseDTO() {
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userMapper.toEntity(requestDTO)).thenReturn(user);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userMapper.toDTO(any(User.class))).thenReturn(responseDTO);
 
         UserResponseDTO result = userService.create(requestDTO);
 
@@ -95,6 +97,7 @@ class UserServiceTest {
     @Test
     void create_WithExistingEmail_ShouldReturnExistingUser() {
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
         UserResponseDTO result = userService.create(requestDTO);
 
@@ -106,8 +109,20 @@ class UserServiceTest {
     void create_WithTutor_ShouldResolveTutor() {
         requestDTO.setTutorId(1L);
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userMapper.toEntity(requestDTO)).thenReturn(user);
         when(userRepository.findById(1L)).thenReturn(Optional.of(tutor));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userMapper.toDTO(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            UserResponseDTO dto = new UserResponseDTO();
+            dto.setId(saved.getId());
+            dto.setName(saved.getName());
+            dto.setSurname(saved.getSurname());
+            dto.setEmail(saved.getEmail());
+            dto.setTutorId(saved.getTutorId() != null ? saved.getTutorId().getId() : null);
+            dto.setActive(saved.getActive());
+            return dto;
+        });
 
         UserResponseDTO result = userService.create(requestDTO);
 
@@ -127,38 +142,86 @@ class UserServiceTest {
     }
 
     @Test
-    void getAll_ShouldReturnListOfUsers() {
+    void getAll_WhenAdmin_ShouldReturnAllUsers() {
         when(userRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user)));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
-        Page<UserResponseDTO> result = userService.getAll(Pageable.unpaged());
+        Page<UserResponseDTO> result = userService.getAll(Pageable.unpaged(), 1L, Role.ADMIN);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getEmail()).isEqualTo("user@test.com");
     }
 
     @Test
-    void getById_ShouldReturnUser() {
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+    void getAll_WhenEmployee_ShouldReturnOnlyTheirBookingUsers() {
+        when(userRepository.findByBookingsEmployeeId(eq(1L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(user)));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
-        UserResponseDTO result = userService.getById(2L);
+        Page<UserResponseDTO> result = userService.getAll(Pageable.unpaged(), 1L, Role.EMPLOYEE);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("user@test.com");
+    }
+
+    @Test
+    void getById_WhenAdmin_ShouldReturnUser() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+
+        UserResponseDTO result = userService.getById(2L, 1L, Role.ADMIN);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(2L);
     }
 
     @Test
-    void getById_ShouldThrowResourceNotFoundException() {
+    void getById_WhenEmployeeOwnUser_ShouldReturnUser() {
+        when(userRepository.existsUserInEmployeeBookings(2L, 1L)).thenReturn(true);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+
+        UserResponseDTO result = userService.getById(2L, 1L, Role.EMPLOYEE);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void getById_WhenEmployeeOtherUser_ShouldThrowForbidden() {
+        when(userRepository.existsUserInEmployeeBookings(99L, 1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.getById(99L, 1L, Role.EMPLOYEE))
+                .isInstanceOf(ForbiddenAccessException.class)
+                .hasMessageContaining("No tienes permiso para ver los datos de este cliente");
+
+        verify(userRepository, never()).findById(any());
+    }
+
+    @Test
+    void getById_WhenNotFound_ShouldThrowResourceNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.getById(99L))
+        assertThatThrownBy(() -> userService.getById(99L, 1L, Role.ADMIN))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void getActive_ShouldReturnActiveUsers() {
+    void getActive_WhenAdmin_ShouldReturnActiveUsers() {
         when(userRepository.findByActive(eq(true), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user)));
 
-        Page<UserResponseDTO> result = userService.getActive(Pageable.unpaged());
+        Page<UserResponseDTO> result = userService.getActive(Pageable.unpaged(), 1L, Role.ADMIN);
+
+        assertThat(result.getContent()).hasSize(1);
+    }
+
+    @Test
+    void getActive_WhenEmployee_ShouldReturnOnlyTheirBookingUsers() {
+        when(userRepository.findByBookingsEmployeeId(eq(1L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(user)));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+
+        Page<UserResponseDTO> result = userService.getActive(Pageable.unpaged(), 1L, Role.EMPLOYEE);
 
         assertThat(result.getContent()).hasSize(1);
     }
@@ -170,7 +233,20 @@ class UserServiceTest {
         updateDTO.setSurname("User");
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        doAnswer(inv -> {
+            user.setName(updateDTO.getName());
+            user.setSurname(updateDTO.getSurname());
+            return null;
+        }).when(userMapper).updateFromDto(updateDTO, user);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userMapper.toDTO(any(User.class))).thenAnswer(inv -> {
+            User saved = inv.getArgument(0);
+            UserResponseDTO dto = new UserResponseDTO();
+            dto.setId(saved.getId());
+            dto.setName(saved.getName());
+            dto.setSurname(saved.getSurname());
+            return dto;
+        });
 
         UserResponseDTO result = userService.update(2L, updateDTO);
 
@@ -185,7 +261,9 @@ class UserServiceTest {
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         when(userRepository.findById(1L)).thenReturn(Optional.of(tutor));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        doNothing().when(userMapper).updateFromDto(updateDTO, user);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userMapper.toDTO(any(User.class))).thenReturn(responseDTO);
 
         UserResponseDTO result = userService.update(2L, updateDTO);
 

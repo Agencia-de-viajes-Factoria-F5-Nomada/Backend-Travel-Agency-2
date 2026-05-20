@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,12 +35,14 @@ class BusRepositoryTest {
         activeBus = new Bus();
         activeBus.setLicensePlate("ABC-1234");
         activeBus.setCapacity(50);
+        activeBus.setAvailablePlaces(50);
         activeBus.setActive(true);
         entityManager.persist(activeBus);
 
         inactiveBus = new Bus();
         inactiveBus.setLicensePlate("XYZ-5678");
         inactiveBus.setCapacity(30);
+        inactiveBus.setAvailablePlaces(30);
         inactiveBus.setActive(false);
         entityManager.persist(inactiveBus);
 
@@ -90,6 +93,28 @@ class BusRepositoryTest {
         entityManager.flush();
 
         List<Bus> result = busRepository.findByActive(true);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findByAvailablePlacesGreaterThan_ShouldReturnBusesWithAvailablePlaces() {
+        List<Bus> result = busRepository.findByAvailablePlacesGreaterThan(0);
+
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void findByIdForUpdate_ShouldReturnBus() {
+        Optional<Bus> result = busRepository.findByIdForUpdate(activeBus.getId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getLicensePlate()).isEqualTo("ABC-1234");
+    }
+
+    @Test
+    void findByIdForUpdate_WhenNotExists_ShouldReturnEmpty() {
+        Optional<Bus> result = busRepository.findByIdForUpdate(999L);
 
         assertThat(result).isEmpty();
     }
