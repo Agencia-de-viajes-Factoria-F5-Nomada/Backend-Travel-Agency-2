@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.BusRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BusResponseDTO;
+import com.inditex.g1_agencia_viajes.exception.BusFullException;
 import com.inditex.g1_agencia_viajes.exception.DuplicateLicensePlateException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.BusMapper;
@@ -46,6 +47,7 @@ class BusServiceTest {
         bus.setId(1L);
         bus.setLicensePlate("ABC-1234");
         bus.setCapacity(50);
+        bus.setAvailablePlaces(50);
         bus.setBath(true);
         bus.setWifi(true);
         bus.setAC(true);
@@ -54,6 +56,7 @@ class BusServiceTest {
         requestDTO = new BusRequestDTO();
         requestDTO.setLicensePlate("ABC-1234");
         requestDTO.setCapacity(50);
+        requestDTO.setAvailablePlaces(50);
         requestDTO.setBath(true);
         requestDTO.setWifi(true);
         requestDTO.setAC(true);
@@ -63,6 +66,7 @@ class BusServiceTest {
         responseDTO.setId(1L);
         responseDTO.setLicensePlate("ABC-1234");
         responseDTO.setCapacity(50);
+        responseDTO.setAvailablePlaces(50);
         responseDTO.setBath(true);
         responseDTO.setWifi(true);
         responseDTO.setAC(true);
@@ -110,6 +114,39 @@ class BusServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getLicensePlate()).isEqualTo("ABC-1234");
+    }
+
+    @Test
+    void create_ShouldSetAvailablePlacesToCapacityWhenNull() {
+        BusRequestDTO dtoWithoutPlaces = new BusRequestDTO();
+        dtoWithoutPlaces.setLicensePlate("XYZ-5678");
+        dtoWithoutPlaces.setCapacity(40);
+
+        Bus busWithoutPlaces = new Bus();
+        busWithoutPlaces.setLicensePlate("XYZ-5678");
+        busWithoutPlaces.setCapacity(40);
+        busWithoutPlaces.setAvailablePlaces(null);
+
+        Bus savedBus = new Bus();
+        savedBus.setId(2L);
+        savedBus.setLicensePlate("XYZ-5678");
+        savedBus.setCapacity(40);
+        savedBus.setAvailablePlaces(40);
+
+        BusResponseDTO savedResponse = new BusResponseDTO();
+        savedResponse.setId(2L);
+        savedResponse.setLicensePlate("XYZ-5678");
+        savedResponse.setCapacity(40);
+        savedResponse.setAvailablePlaces(40);
+
+        when(busRepository.existsByLicensePlate("XYZ-5678")).thenReturn(false);
+        when(busMapper.toEntity(dtoWithoutPlaces)).thenReturn(busWithoutPlaces);
+        when(busRepository.save(any(Bus.class))).thenReturn(savedBus);
+        when(busMapper.toDTO(savedBus)).thenReturn(savedResponse);
+
+        BusResponseDTO result = busService.create(dtoWithoutPlaces);
+
+        assertThat(result.getAvailablePlaces()).isEqualTo(40);
     }
 
     @Test
@@ -201,6 +238,63 @@ class BusServiceTest {
         when(busRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> busService.delete(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void getAvailable_ShouldReturnBusesWithAvailablePlaces() {
+        when(busRepository.findByAvailablePlacesGreaterThan(0, Pageable.unpaged()))
+                .thenReturn(new PageImpl<>(List.of(bus)));
+        when(busMapper.toDTO(bus)).thenReturn(responseDTO);
+
+        Page<BusResponseDTO> result = busService.getAvailable(Pageable.unpaged());
+
+        assertThat(result.getContent()).hasSize(1);
+    }
+
+    @Test
+    void reduceCapacity_ShouldReduceAvailablePlaces() {
+        when(busRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(bus));
+
+        busService.reduceCapacity(1L, 3);
+
+        assertThat(bus.getAvailablePlaces()).isEqualTo(47);
+        verify(busRepository).save(bus);
+    }
+
+    @Test
+    void reduceCapacity_ShouldThrowBusFullException() {
+        bus.setAvailablePlaces(2);
+        when(busRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(bus));
+
+        assertThatThrownBy(() -> busService.reduceCapacity(1L, 5))
+                .isInstanceOf(BusFullException.class);
+    }
+
+    @Test
+    void reduceCapacity_ShouldThrowResourceNotFoundException() {
+        when(busRepository.findByIdForUpdate(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> busService.reduceCapacity(99L, 1))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void releaseCapacity_ShouldIncreaseAvailablePlaces() {
+        bus.setAvailablePlaces(40);
+        when(busRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(bus));
+
+        busService.releaseCapacity(1L, 5);
+
+        assertThat(bus.getAvailablePlaces()).isEqualTo(45);
+        verify(busRepository).save(bus);
+    }
+
+    @Test
+    void releaseCapacity_ShouldThrowResourceNotFoundException() {
+        when(busRepository.findByIdForUpdate(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> busService.releaseCapacity(99L, 1))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

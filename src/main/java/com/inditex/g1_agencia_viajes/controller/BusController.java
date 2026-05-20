@@ -28,6 +28,12 @@ public class BusController {
         return ResponseEntity.ok(busService.getAll(pageable));
     }
 
+    @GetMapping("/available")
+    @Operation(summary = "Obtener autobuses con plazas disponibles")
+    public ResponseEntity<Page<BusResponseDTO>> getAvailable(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(busService.getAvailable(pageable));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Obtener un autobús por ID")
     public ResponseEntity<BusResponseDTO> getById(@PathVariable Long id) {

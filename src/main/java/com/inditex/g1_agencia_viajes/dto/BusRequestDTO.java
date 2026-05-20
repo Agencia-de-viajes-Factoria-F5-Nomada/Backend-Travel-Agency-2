@@ -17,6 +17,9 @@ public class BusRequestDTO {
     @Min(value = 1, message = "La capacidad debe ser mayor que 0")
     private Integer capacity;
 
+    @Min(value = 0, message = "Las plazas no pueden ser negativas")
+    private Integer availablePlaces;
+
     private Boolean bath;
     private Boolean wifi;
     private Boolean AC;

@@ -149,7 +149,6 @@ class BookingServiceTest {
 
         when(bookingValidator.resolveTravelOrThrow(1L)).thenReturn(travel);
         when(bookingValidator.resolveCustomersByIds(List.of(2L))).thenReturn(List.of(adultUser));
-        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(500.0);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 
@@ -160,7 +159,6 @@ class BookingServiceTest {
         verify(bookingValidator).validateTravelNotPast(travel);
         verify(bookingValidator).validateCustomers(List.of(adultUser));
         verify(bookingValidator).validateTravelAvailability(travel, 1);
-        verify(bookingValidator).validateBusCapacity(1L, 1);
         verify(travelCapacityService).occupyCapacity(travel, 1);
         verify(bookingPricingService).calculateTotalPrice(any(Booking.class));
     }
@@ -179,7 +177,6 @@ class BookingServiceTest {
 
         when(bookingValidator.resolveTravelOrThrow(1L)).thenReturn(travel);
         when(bookingValidator.resolveCustomersByIds(List.of(2L, 3L))).thenReturn(List.of(adultUser, secondAdultUser));
-        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(700.0);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 
@@ -241,7 +238,6 @@ class BookingServiceTest {
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(bookingValidator.resolveTravelOrThrow(2L)).thenReturn(newTravel);
         when(bookingValidator.resolveCustomersByIds(List.of(2L))).thenReturn(List.of(adultUser));
-        when(bookingRepository.countTotalPassengersByTravelId(2L)).thenReturn(0);
         when(bookingPricingService.calculateTotalPrice(any(Booking.class))).thenReturn(800.0);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 
@@ -304,7 +300,6 @@ class BookingServiceTest {
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
-        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(bookingPricingService.calculateTotalPrice(booking)).thenReturn(600.0);
         when(bookingRepository.save(booking)).thenReturn(booking);
 
@@ -327,7 +322,6 @@ class BookingServiceTest {
 
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(userRepository.findById(2L)).thenReturn(Optional.of(adultUser));
-        when(bookingRepository.countTotalPassengersByTravelId(1L)).thenReturn(0);
         when(bookingPricingService.calculateTotalPrice(booking)).thenReturn(600.0);
         when(bookingRepository.save(booking)).thenReturn(booking);
 

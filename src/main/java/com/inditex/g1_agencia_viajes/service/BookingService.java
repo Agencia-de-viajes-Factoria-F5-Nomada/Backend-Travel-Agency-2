@@ -71,9 +71,6 @@ public class BookingService {
         int numPassengers = customers.size();
         bookingValidator.validateTravelAvailability(travel, numPassengers);
 
-        int currentTotal = bookingRepository.countTotalPassengersByTravelId(travel.getId());
-        bookingValidator.validateBusCapacity(travel.getId(), currentTotal + numPassengers);
-
         travelCapacityService.occupyCapacity(travel, numPassengers);
 
         return finalizeBooking(booking);
@@ -105,9 +102,6 @@ public class BookingService {
 
         int newPassengerCount = customers.size();
         bookingValidator.validateTravelAvailability(newTravel, newPassengerCount);
-        bookingValidator.validateBusCapacity(newTravel.getId(),
-                bookingRepository.countTotalPassengersByTravelId(newTravel.getId())
-                        - oldPassengerCount + newPassengerCount);
 
         travelCapacityService.occupyCapacity(newTravel, newPassengerCount);
 
@@ -140,8 +134,6 @@ public class BookingService {
 
         bookingValidator.validateTravelNotPast(travel);
         bookingValidator.validateTravelAvailability(travel, 1);
-        bookingValidator.validateBusCapacity(travel.getId(),
-                bookingRepository.countTotalPassengersByTravelId(travel.getId()) + 1);
 
         travelCapacityService.occupyCapacity(travel, 1);
 
