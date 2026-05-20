@@ -38,6 +38,8 @@ public class User {
 
     private Integer age;
 
+    private String phone;
+
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tutor_id", referencedColumnName = "id")

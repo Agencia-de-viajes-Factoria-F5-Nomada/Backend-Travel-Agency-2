@@ -19,14 +19,16 @@ public class UserRequestDTO {
     @NotBlank(message = "El email es obligatorio")
     private String email;
 
-    @Pattern(regexp = "^[0-9]{8}[A-Z]$", message = "El DNI no tiene un formato válido")
+    @Pattern(regexp = "^(|[0-9]{8}[A-Z])$", message = "El DNI no tiene un formato válido")
     private String dni;
 
-    @Pattern(regexp = "^[A-Z]{3}[0-9]{6}$", message = "Formato de pasaporte inválido (ej: AAA123456)")
+    @Pattern(regexp = "^(|[A-Z]{3}[0-9]{6})$", message = "Formato de pasaporte inválido (ej: AAA123456)")
     private String passport;
 
     @Min(value = 0, message = "La edad no puede ser negativa")
     private Integer age;
+
+    private String phone;
 
     private Long tutorId;
 

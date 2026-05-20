@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.controller;
 
 import com.inditex.g1_agencia_viajes.dto.EmployeeRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.EmployeeResponseDTO;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,14 +25,18 @@ public class EmployeeController {
 
     @GetMapping
     @Operation(summary = "Obtener todos los empleados")
-    public ResponseEntity<Page<EmployeeResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(employeeService.getAllEmployees(pageable));
+    public ResponseEntity<Page<EmployeeResponseDTO>> getAll(@PageableDefault(size = 20) Pageable pageable,
+                                                            @RequestAttribute("id") Long currentUserId,
+                                                            @RequestAttribute("role") Role role) {
+        return ResponseEntity.ok(employeeService.getAllEmployees(pageable, currentUserId, role));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Obtener un empleado por ID")
-    public ResponseEntity<EmployeeResponseDTO> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(employeeService.getEmployeeById(id));
+    public ResponseEntity<EmployeeResponseDTO> getById(@PathVariable Long id,
+                                                       @RequestAttribute("id") Long currentUserId,
+                                                       @RequestAttribute("role") Role role) {
+        return ResponseEntity.ok(employeeService.getEmployeeById(id, currentUserId, role));
     }
 
     @PostMapping

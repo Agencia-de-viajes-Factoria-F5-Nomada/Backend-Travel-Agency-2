@@ -11,6 +11,7 @@ public class UserResponseDTO {
     private String dni;
     private String passport;
     private Integer age;
+    private String phone;
     private Long tutorId;
     private Boolean active;
 }

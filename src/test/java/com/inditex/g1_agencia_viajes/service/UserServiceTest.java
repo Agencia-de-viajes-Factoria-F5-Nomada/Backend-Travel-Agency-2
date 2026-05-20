@@ -2,9 +2,10 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.UserRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.UserResponseDTO;
-import com.inditex.g1_agencia_viajes.exception.EmailAlreadyExistsException;
+import com.inditex.g1_agencia_viajes.exception.ForbiddenAccessException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.UserMapper;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -129,41 +130,87 @@ class UserServiceTest {
     }
 
     @Test
-    void getAll_ShouldReturnListOfUsers() {
+    void getAll_WhenAdmin_ShouldReturnAllUsers() {
         when(userRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user)));
         when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
-        Page<UserResponseDTO> result = userService.getAll(Pageable.unpaged());
+        Page<UserResponseDTO> result = userService.getAll(Pageable.unpaged(), 1L, Role.ADMIN);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getEmail()).isEqualTo("user@test.com");
     }
 
     @Test
-    void getById_ShouldReturnUser() {
+    void getAll_WhenEmployee_ShouldReturnOnlyTheirBookingUsers() {
+        when(userRepository.findByBookingsEmployeeId(eq(1L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(user)));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+
+        Page<UserResponseDTO> result = userService.getAll(Pageable.unpaged(), 1L, Role.EMPLOYEE);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getEmail()).isEqualTo("user@test.com");
+    }
+
+    @Test
+    void getById_WhenAdmin_ShouldReturnUser() {
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
-        UserResponseDTO result = userService.getById(2L);
+        UserResponseDTO result = userService.getById(2L, 1L, Role.ADMIN);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(2L);
     }
 
     @Test
-    void getById_ShouldThrowResourceNotFoundException() {
+    void getById_WhenEmployeeOwnUser_ShouldReturnUser() {
+        when(userRepository.existsUserInEmployeeBookings(2L, 1L)).thenReturn(true);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+
+        UserResponseDTO result = userService.getById(2L, 1L, Role.EMPLOYEE);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void getById_WhenEmployeeOtherUser_ShouldThrowForbidden() {
+        when(userRepository.existsUserInEmployeeBookings(99L, 1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.getById(99L, 1L, Role.EMPLOYEE))
+                .isInstanceOf(ForbiddenAccessException.class)
+                .hasMessageContaining("No tienes permiso para ver los datos de este cliente");
+
+        verify(userRepository, never()).findById(any());
+    }
+
+    @Test
+    void getById_WhenNotFound_ShouldThrowResourceNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.getById(99L))
+        assertThatThrownBy(() -> userService.getById(99L, 1L, Role.ADMIN))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void getActive_ShouldReturnActiveUsers() {
+    void getActive_WhenAdmin_ShouldReturnActiveUsers() {
         when(userRepository.findByActive(eq(true), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user)));
         when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
-        Page<UserResponseDTO> result = userService.getActive(Pageable.unpaged());
+        Page<UserResponseDTO> result = userService.getActive(Pageable.unpaged(), 1L, Role.ADMIN);
+
+        assertThat(result.getContent()).hasSize(1);
+    }
+
+    @Test
+    void getActive_WhenEmployee_ShouldReturnOnlyTheirBookingUsers() {
+        when(userRepository.findByBookingsEmployeeId(eq(1L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(user)));
+        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+
+        Page<UserResponseDTO> result = userService.getActive(Pageable.unpaged(), 1L, Role.EMPLOYEE);
 
         assertThat(result.getContent()).hasSize(1);
     }

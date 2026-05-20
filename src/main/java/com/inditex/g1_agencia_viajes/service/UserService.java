@@ -2,9 +2,10 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.UserRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.UserResponseDTO;
-import com.inditex.g1_agencia_viajes.exception.EmailAlreadyExistsException;
+import com.inditex.g1_agencia_viajes.exception.ForbiddenAccessException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.UserMapper;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class
-UserService {
+public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -40,21 +40,33 @@ UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserResponseDTO> getAll(Pageable pageable) {
-        return userRepository.findAll(pageable)
+    public Page<UserResponseDTO> getAll(Pageable pageable, Long currentUserId, Role role) {
+        if (role == Role.ADMIN) {
+            return userRepository.findAll(pageable)
+                    .map(userMapper::toDTO);
+        }
+        return userRepository.findByBookingsEmployeeId(currentUserId, pageable)
                 .map(userMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public UserResponseDTO getById(Long id) {
+    public UserResponseDTO getById(Long id, Long currentUserId, Role role) {
+        if (role != Role.ADMIN
+                && !userRepository.existsUserInEmployeeBookings(id, currentUserId)) {
+            throw new ForbiddenAccessException("No tienes permiso para ver los datos de este cliente");
+        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el cliente", id));
         return userMapper.toDTO(user);
     }
 
     @Transactional(readOnly = true)
-    public Page<UserResponseDTO> getActive(Pageable pageable) {
-        return userRepository.findByActive(true, pageable)
+    public Page<UserResponseDTO> getActive(Pageable pageable, Long currentUserId, Role role) {
+        if (role == Role.ADMIN) {
+            return userRepository.findByActive(true, pageable)
+                    .map(userMapper::toDTO);
+        }
+        return userRepository.findByBookingsEmployeeId(currentUserId, pageable)
                 .map(userMapper::toDTO);
     }
 

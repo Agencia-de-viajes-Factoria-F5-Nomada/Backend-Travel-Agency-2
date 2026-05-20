@@ -6,10 +6,12 @@ import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingResponseDTO;
 import com.inditex.g1_agencia_viajes.event.BookingCreatedEvent;
+import com.inditex.g1_agencia_viajes.exception.ForbiddenAccessException;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.BookingMapper;
 import com.inditex.g1_agencia_viajes.model.Booking;
 import com.inditex.g1_agencia_viajes.model.Employee;
+import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.model.Travel;
 import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.BookingRepository;
@@ -41,19 +43,27 @@ public class BookingService {
     private final TravelCapacityService travelCapacityService;
 
     @Transactional(readOnly = true)
-    public Page<BookingResponseDTO> findAll(Pageable pageable) {
-        return bookingRepository.findAll(pageable)
+    public Page<BookingResponseDTO> findAll(Pageable pageable, Long currentUserId, Role role) {
+        if (role == Role.ADMIN) {
+            return bookingRepository.findAll(pageable)
+                    .map(bookingMapper::toDTO);
+        }
+        return bookingRepository.findByEmployeeEmployeeId(currentUserId, pageable)
                 .map(bookingMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public Optional<BookingResponseDTO> findById(Long id) {
-        return bookingRepository.findById(id)
+    public Optional<BookingResponseDTO> findById(Long id, Long currentUserId, Role role) {
+        if (role == Role.ADMIN) {
+            return bookingRepository.findById(id)
+                    .map(bookingMapper::toDTO);
+        }
+        return bookingRepository.findByBookingIdAndEmployeeEmployeeId(id, currentUserId)
                 .map(bookingMapper::toDTO);
     }
 
     @Transactional
-    public BookingResponseDTO save(BookingRequestDTO dto) {
+    public BookingResponseDTO save(BookingRequestDTO dto, Long currentUserId, Role role) {
         Booking booking = new Booking();
         booking.setBoughtDate(dto.getBoughtDate()!= null ? dto.getBoughtDate() : LocalDate.now().atStartOfDay());
         booking.setTypeBoard(dto.getTypeBoard());
@@ -62,7 +72,9 @@ public class BookingService {
         Travel travel = bookingValidator.resolveTravelOrThrow(dto.getTravelId());
         bookingValidator.validateTravelNotPast(travel);
         booking.setTravel(travel);
-        resolveAndSetEmployee(booking, dto.getEmployeeId());
+
+        Long employeeId = role == Role.ADMIN ? dto.getEmployeeId() : currentUserId;
+        resolveAndSetEmployee(booking, employeeId);
 
         List<User> customers = bookingValidator.resolveCustomersByIds(dto.getCustomerIds());
         bookingValidator.validateCustomers(customers);
@@ -77,7 +89,7 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingResponseDTO update(Long id, BookingRequestDTO dto) {
+    public BookingResponseDTO update(Long id, BookingRequestDTO dto, Long currentUserId, Role role) {
         Booking booking = findBookingOrThrow(id);
 
         Travel oldTravel = booking.getTravel();
@@ -94,7 +106,8 @@ public class BookingService {
         bookingValidator.validateTravelNotPast(newTravel);
         booking.setTravel(newTravel);
 
-        resolveAndSetEmployee(booking, dto.getEmployeeId());
+        Long employeeId = role == Role.ADMIN ? dto.getEmployeeId() : currentUserId;
+        resolveAndSetEmployee(booking, employeeId);
 
         List<User> customers = bookingValidator.resolveCustomersByIds(dto.getCustomerIds());
         bookingValidator.validateCustomers(customers);
@@ -109,9 +122,15 @@ public class BookingService {
     }
 
     @Transactional
-    public void deleteById(Long id) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
+    public void deleteById(Long id, Long currentUserId, Role role) {
+        Booking booking;
+        if (role == Role.ADMIN) {
+            booking = bookingRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
+        } else {
+            booking = bookingRepository.findByBookingIdAndEmployeeEmployeeId(id, currentUserId)
+                    .orElseThrow(() -> new ResourceNotFoundException("la reserva", id));
+        }
 
         Travel travel = booking.getTravel();
         if (travel != null) {
@@ -122,8 +141,15 @@ public class BookingService {
     }
 
     @Transactional
-    public void addCustomerToBooking(BookingUserRequestDTO request) {
-        Booking booking = findBookingOrThrow(request.getBookingId());
+    public void addCustomerToBooking(BookingUserRequestDTO request, Long currentUserId, Role role) {
+        Booking booking;
+        if (role == Role.ADMIN) {
+            booking = findBookingOrThrow(request.getBookingId());
+        } else {
+            booking = bookingRepository.findByBookingIdAndEmployeeEmployeeId(request.getBookingId(), currentUserId)
+                    .orElseThrow(() -> new ResourceNotFoundException("la reserva", request.getBookingId()));
+        }
+
         User user = findUserOrThrow(request.getUserId());
         bookingValidator.validateMinorHasTutor(user);
 
