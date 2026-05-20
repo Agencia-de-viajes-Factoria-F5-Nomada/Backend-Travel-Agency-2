@@ -91,7 +91,7 @@ class EmployeeControllerTest {
                     "email": "nuevo@nomada.es",
                     "gender": "MALE",
                     "hired": true,
-                    "role": "VIEWER",
+                    "role": "EMPLOYEE",
                     "password": "123456"
                 }
                 """;
@@ -138,7 +138,7 @@ class EmployeeControllerTest {
                     "email": "actualizado@nomada.es",
                     "gender": "MALE",
                     "hired": true,
-                    "role": "EDITOR",
+                    "role": "ADMIN",
                     "password": "123456"
                 }
                 """;

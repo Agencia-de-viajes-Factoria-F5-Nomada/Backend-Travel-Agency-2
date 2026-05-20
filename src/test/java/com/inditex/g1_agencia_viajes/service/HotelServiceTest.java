@@ -207,7 +207,7 @@ class HotelServiceTest {
 
     @Test
     void reduceCapacity_ShouldReduceAvailablePlaces() {
-        when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
+        when(hotelRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(hotel));
 
         hotelService.reduceCapacity(1L, 10);
 
@@ -218,7 +218,7 @@ class HotelServiceTest {
     @Test
     void reduceCapacity_ShouldThrowHotelNotAvailableException() {
         hotel.setAvailablePlaces(5);
-        when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
+        when(hotelRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(hotel));
 
         assertThatThrownBy(() -> hotelService.reduceCapacity(1L, 10))
                 .isInstanceOf(HotelNotAvailableException.class);
@@ -226,7 +226,7 @@ class HotelServiceTest {
 
     @Test
     void releaseCapacity_ShouldIncreaseAvailablePlaces() {
-        when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
+        when(hotelRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(hotel));
 
         hotelService.releaseCapacity(1L, 20);
 
@@ -236,8 +236,6 @@ class HotelServiceTest {
 
     @Test
     void releaseCapacity_ShouldThrowResourceNotFoundException() {
-        when(hotelRepository.findById(99L)).thenReturn(Optional.empty());
-
         assertThatThrownBy(() -> hotelService.releaseCapacity(99L, 10))
                 .isInstanceOf(ResourceNotFoundException.class);
     }

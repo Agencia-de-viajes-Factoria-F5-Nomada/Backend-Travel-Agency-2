@@ -66,6 +66,7 @@ public class BookingService {
 
         List<User> customers = bookingValidator.resolveCustomersByIds(dto.getCustomerIds());
         bookingValidator.validateCustomers(customers);
+        bookingValidator.validatePassportForForeignTravel(travel, customers);
         booking.setCustomers(customers);
 
         int numPassengers = customers.size();
@@ -101,6 +102,7 @@ public class BookingService {
 
         List<User> customers = bookingValidator.resolveCustomersByIds(dto.getCustomerIds());
         bookingValidator.validateCustomers(customers);
+        bookingValidator.validatePassportForForeignTravel(newTravel, customers);
         booking.setCustomers(customers);
 
         int newPassengerCount = customers.size();
@@ -138,6 +140,7 @@ public class BookingService {
             return;
         }
 
+        bookingValidator.validatePassportForForeignTravel(travel, List.of(user));
         bookingValidator.validateTravelNotPast(travel);
         bookingValidator.validateTravelAvailability(travel, 1);
         bookingValidator.validateBusCapacity(travel.getId(),

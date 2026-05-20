@@ -10,6 +10,7 @@ import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,7 +32,6 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @Mock
     private UserMapper userMapper;
 
     private UserService userService;
@@ -43,6 +43,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        userMapper = Mappers.getMapper(UserMapper.class);
         userService = new UserService(userRepository, userMapper);
 
         tutor = new User();
@@ -82,10 +83,8 @@ class UserServiceTest {
 
     @Test
     void create_ShouldReturnUserResponseDTO() {
-        when(userRepository.existsByEmail("user@test.com")).thenReturn(false);
-        when(userMapper.toEntity(requestDTO)).thenReturn(user);
-        when(userRepository.save(user)).thenReturn(user);
-        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserResponseDTO result = userService.create(requestDTO);
 
@@ -94,34 +93,33 @@ class UserServiceTest {
     }
 
     @Test
-    void create_ShouldThrowEmailAlreadyExistsException() {
-        when(userRepository.existsByEmail("user@test.com")).thenReturn(true);
+    void create_WithExistingEmail_ShouldReturnExistingUser() {
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> userService.create(requestDTO))
-                .isInstanceOf(EmailAlreadyExistsException.class);
+        UserResponseDTO result = userService.create(requestDTO);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo("user@test.com");
     }
 
     @Test
     void create_WithTutor_ShouldResolveTutor() {
         requestDTO.setTutorId(1L);
-        when(userRepository.existsByEmail("user@test.com")).thenReturn(false);
-        when(userMapper.toEntity(requestDTO)).thenReturn(user);
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
         when(userRepository.findById(1L)).thenReturn(Optional.of(tutor));
-        when(userRepository.save(user)).thenReturn(user);
-        when(userMapper.toDTO(user)).thenReturn(responseDTO);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserResponseDTO result = userService.create(requestDTO);
 
         assertThat(result).isNotNull();
         verify(userRepository).findById(1L);
-        assertThat(user.getTutorId()).isEqualTo(tutor);
+        assertThat(result.getTutorId()).isEqualTo(1L);
     }
 
     @Test
     void create_WithNonExistentTutor_ShouldThrowResourceNotFoundException() {
         requestDTO.setTutorId(99L);
-        when(userRepository.existsByEmail("user@test.com")).thenReturn(false);
-        when(userMapper.toEntity(requestDTO)).thenReturn(user);
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.empty());
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.create(requestDTO))
@@ -131,7 +129,6 @@ class UserServiceTest {
     @Test
     void getAll_ShouldReturnListOfUsers() {
         when(userRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user)));
-        when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
         Page<UserResponseDTO> result = userService.getAll(Pageable.unpaged());
 
@@ -142,7 +139,6 @@ class UserServiceTest {
     @Test
     void getById_ShouldReturnUser() {
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
-        when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
         UserResponseDTO result = userService.getById(2L);
 
@@ -161,7 +157,6 @@ class UserServiceTest {
     @Test
     void getActive_ShouldReturnActiveUsers() {
         when(userRepository.findByActive(eq(true), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user)));
-        when(userMapper.toDTO(user)).thenReturn(responseDTO);
 
         Page<UserResponseDTO> result = userService.getActive(Pageable.unpaged());
 
@@ -175,13 +170,7 @@ class UserServiceTest {
         updateDTO.setSurname("User");
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        UserResponseDTO updatedResponse = new UserResponseDTO();
-        updatedResponse.setId(2L);
-        updatedResponse.setName("Updated");
-        updatedResponse.setSurname("User");
-        when(userMapper.toDTO(any(User.class))).thenReturn(updatedResponse);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UserResponseDTO result = userService.update(2L, updateDTO);
 
@@ -196,14 +185,11 @@ class UserServiceTest {
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         when(userRepository.findById(1L)).thenReturn(Optional.of(tutor));
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        UserResponseDTO updatedResponse = new UserResponseDTO();
-        updatedResponse.setId(2L);
-        when(userMapper.toDTO(any(User.class))).thenReturn(updatedResponse);
+        UserResponseDTO result = userService.update(2L, updateDTO);
 
-        userService.update(2L, updateDTO);
-
+        assertThat(result).isNotNull();
         assertThat(user.getTutorId()).isEqualTo(tutor);
     }
 

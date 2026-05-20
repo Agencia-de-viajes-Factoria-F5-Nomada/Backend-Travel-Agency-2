@@ -4,7 +4,9 @@ import com.inditex.g1_agencia_viajes.dto.DriverRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.DriverResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.DriverMapper;
+import com.inditex.g1_agencia_viajes.model.Bus;
 import com.inditex.g1_agencia_viajes.model.Driver;
+import com.inditex.g1_agencia_viajes.repository.BusRepository;
 import com.inditex.g1_agencia_viajes.repository.DriverRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,11 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class DriverService {
 
     private final DriverRepository driverRepository;
+    private final BusRepository busRepository;
     private final DriverMapper driverMapper;
 
     @Transactional
     public DriverResponseDTO create(DriverRequestDTO dto) {
         Driver driver = driverMapper.toEntity(dto);
+        resolveBus(driver, dto.getBusId());
         return driverMapper.toDTO(driverRepository.save(driver));
     }
 
@@ -49,7 +53,18 @@ public class DriverService {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("el conductor", id));
         driverMapper.updateFromDto(dto, driver);
+        resolveBus(driver, dto.getBusId());
         return driverMapper.toDTO(driverRepository.save(driver));
+    }
+
+    private void resolveBus(Driver driver, Long busId) {
+        if (busId != null) {
+            Bus bus = busRepository.findById(busId)
+                    .orElseThrow(() -> new ResourceNotFoundException("el bus", busId));
+            driver.setBus(bus);
+        } else {
+            driver.setBus(null);
+        }
     }
 
     @Transactional

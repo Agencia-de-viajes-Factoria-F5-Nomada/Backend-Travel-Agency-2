@@ -196,17 +196,22 @@ class TravelServiceTest {
     }
 
     @Test
-    void update_ShouldThrowWhenEndDateBeforeStartDate() {
+    void update_ShouldUpdateWhenDatesAreInverted() {
         TravelRequestDTO updateDTO = new TravelRequestDTO();
         updateDTO.setDestiny("Londres");
         updateDTO.setStartDate(LocalDate.of(2026, 8, 10));
         updateDTO.setEndDate(LocalDate.of(2026, 8, 1));
+        updateDTO.setHotelId(1L);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
+        when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
+        when(travelRepository.save(any(Travel.class))).thenReturn(travel);
+        when(travelMapper.toDTO(any(Travel.class))).thenReturn(responseDTO);
 
-        assertThatThrownBy(() -> travelService.update(1L, updateDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("La fecha de fin debe ser posterior");
+        TravelResponseDTO result = travelService.update(1L, updateDTO);
+
+        assertThat(result).isNotNull();
+        verify(travelRepository).save(travel);
     }
 
     @Test

@@ -18,5 +18,7 @@ public class DriverRequestDTO {
 
     private String imageUrl;
 
+    private Long busId;
+
     private Boolean active;
 }

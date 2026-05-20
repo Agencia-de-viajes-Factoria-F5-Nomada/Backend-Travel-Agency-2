@@ -73,6 +73,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(PassportRequiredException.class)
+    public ResponseEntity<Map<String, String>> handlePassportRequired(
+            PassportRequiredException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(DuplicateLicensePlateException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateLicensePlate(
             DuplicateLicensePlateException ex) {

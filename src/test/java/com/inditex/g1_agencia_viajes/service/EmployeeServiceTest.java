@@ -11,6 +11,7 @@ import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,7 +32,6 @@ class EmployeeServiceTest {
     @Mock
     private EmployeeRepository employeeRepository;
 
-    @Mock
     private EmployeeMapper employeeMapper;
 
     private EmployeeService employeeService;
@@ -41,6 +41,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
+        employeeMapper = Mappers.getMapper(EmployeeMapper.class);
         employeeService = new EmployeeService(employeeRepository, employeeMapper);
 
         employee = new Employee();

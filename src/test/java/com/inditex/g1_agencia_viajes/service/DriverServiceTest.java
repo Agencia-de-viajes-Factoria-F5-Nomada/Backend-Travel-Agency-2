@@ -5,6 +5,7 @@ import com.inditex.g1_agencia_viajes.dto.DriverResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.DriverMapper;
 import com.inditex.g1_agencia_viajes.model.Driver;
+import com.inditex.g1_agencia_viajes.repository.BusRepository;
 import com.inditex.g1_agencia_viajes.repository.DriverRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,9 @@ class DriverServiceTest {
     private DriverRepository driverRepository;
 
     @Mock
+    private BusRepository busRepository;
+
+    @Mock
     private DriverMapper driverMapper;
 
     private DriverService driverService;
@@ -41,7 +45,7 @@ class DriverServiceTest {
 
     @BeforeEach
     void setUp() {
-        driverService = new DriverService(driverRepository, driverMapper);
+        driverService = new DriverService(driverRepository, busRepository, driverMapper);
 
         driver = new Driver();
         driver.setId(1L);

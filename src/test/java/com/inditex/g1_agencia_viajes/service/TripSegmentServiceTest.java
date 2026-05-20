@@ -12,6 +12,7 @@ import com.inditex.g1_agencia_viajes.repository.BusRepository;
 import com.inditex.g1_agencia_viajes.repository.DriverRepository;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
 import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
+import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +57,7 @@ class TripSegmentServiceTest {
 
     @BeforeEach
     void setUp() {
-        tripSegmentMapper = new TripSegmentMapper();
+        tripSegmentMapper = Mappers.getMapper(TripSegmentMapper.class);
         tripSegmentService = new TripSegmentService(tripSegmentRepository, travelRepository,
                 busRepository, driverRepository, tripSegmentMapper);
 

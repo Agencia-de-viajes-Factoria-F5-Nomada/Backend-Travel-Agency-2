@@ -9,5 +9,7 @@ public class DriverResponseDTO {
     private String phone;
     private Boolean licenceActive;
     private String imageUrl;
+    private Long busId;
+    private String busLicensePlate;
     private Boolean active;
 }

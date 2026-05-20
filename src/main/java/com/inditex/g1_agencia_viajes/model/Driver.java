@@ -30,5 +30,9 @@ public class Driver {
 
     private String imageUrl;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bus_id")
+    private Bus bus;
+
     private Boolean active = true;
 }

@@ -3,8 +3,14 @@ package com.inditex.g1_agencia_viajes.service;
 import com.inditex.g1_agencia_viajes.dto.BookingQuotePassengerDetailDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.BookingQuoteResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.PassengerRequestDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
-import com.inditex.g1_agencia_viajes.model.*;
+import com.inditex.g1_agencia_viajes.model.Booking;
+import com.inditex.g1_agencia_viajes.model.Hotel;
+import com.inditex.g1_agencia_viajes.model.Offer;
+import com.inditex.g1_agencia_viajes.model.Travel;
+import com.inditex.g1_agencia_viajes.model.TypeBoard;
+import com.inditex.g1_agencia_viajes.model.User;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
 import com.inditex.g1_agencia_viajes.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,12 +38,9 @@ class BookingPricingServiceTest {
     private UserRepository userRepository;
 
     private BookingPricingService bookingPricingService;
-
     private Travel travel;
     private Hotel hotel;
     private User adultUser;
-    private User childUser;
-    private User pensionerUser;
     private Booking booking;
 
     @BeforeEach
@@ -52,7 +55,7 @@ class BookingPricingServiceTest {
 
         travel = new Travel();
         travel.setId(1L);
-        travel.setDestiny("París");
+        travel.setDestiny("Paris");
         travel.setHotel(hotel);
         travel.setSale(false);
 
@@ -61,18 +64,6 @@ class BookingPricingServiceTest {
         adultUser.setName("Adult");
         adultUser.setSurname("User");
         adultUser.setAge(30);
-
-        childUser = new User();
-        childUser.setId(2L);
-        childUser.setName("Child");
-        childUser.setSurname("User");
-        childUser.setAge(10);
-
-        pensionerUser = new User();
-        pensionerUser.setId(3L);
-        pensionerUser.setName("Pensioner");
-        pensionerUser.setSurname("User");
-        pensionerUser.setAge(70);
 
         booking = new Booking();
         booking.setTravel(travel);
@@ -86,17 +77,19 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(TypeBoard.HALF);
-        request.setCustomerIds(List.of(1L, 2L));
+        request.setPassengers(List.of(
+                passenger("Adult", "User", 30),
+                passenger("Child", "User", 10)
+        ));
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser, childUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
         assertThat(response).isNotNull();
         assertThat(response.getTravelId()).isEqualTo(1L);
-        assertThat(response.getTravelDestiny()).isEqualTo("París");
+        assertThat(response.getTravelDestiny()).isEqualTo("Paris");
         assertThat(response.getTypeBoard()).isEqualTo(TypeBoard.HALF);
         assertThat(response.getPassengers()).isEqualTo(2);
         assertThat(response.getBasePricePerPassenger()).isEqualTo(100.0);
@@ -107,11 +100,10 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(TypeBoard.FULL);
-        request.setCustomerIds(List.of(1L));
+        request.setPassengers(List.of(passenger("Adult", "User", 30)));
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -123,7 +115,7 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(99L);
         request.setTypeBoard(TypeBoard.HALF);
-        request.setCustomerIds(List.of(1L));
+        request.setPassengers(List.of(passenger("Adult", "User", 30)));
         request.setIsGroup(false);
 
         when(travelRepository.findById(99L)).thenReturn(Optional.empty());
@@ -137,11 +129,10 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(TypeBoard.HALF);
-        request.setCustomerIds(List.of(2L));
+        request.setPassengers(List.of(passenger("Child", "User", 10)));
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findAllById(any())).thenReturn(List.of(childUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -156,11 +147,10 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(TypeBoard.HALF);
-        request.setCustomerIds(List.of(3L));
+        request.setPassengers(List.of(passenger("Pensioner", "User", 70)));
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findAllById(any())).thenReturn(List.of(pensionerUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -172,28 +162,24 @@ class BookingPricingServiceTest {
 
     @Test
     void quote_ShouldApplyGroupDiscount() {
-        User user1 = new User(); user1.setId(4L); user1.setName("User"); user1.setSurname("One"); user1.setAge(30);
-        User user2 = new User(); user2.setId(5L); user2.setName("User"); user2.setSurname("Two"); user2.setAge(30);
-        User user3 = new User(); user3.setId(6L); user3.setName("User"); user3.setSurname("Three"); user3.setAge(30);
-        User user4 = new User(); user4.setId(7L); user4.setName("User"); user4.setSurname("Four"); user4.setAge(30);
-        User user5 = new User(); user5.setId(8L); user5.setName("User"); user5.setSurname("Five"); user5.setAge(30);
-        User user6 = new User(); user6.setId(9L); user6.setName("User"); user6.setSurname("Six"); user6.setAge(30);
-        User user7 = new User(); user7.setId(10L); user7.setName("User"); user7.setSurname("Seven"); user7.setAge(30);
-        User user8 = new User(); user8.setId(11L); user8.setName("User"); user8.setSurname("Eight"); user8.setAge(30);
-        User user9 = new User(); user9.setId(12L); user9.setName("User"); user9.setSurname("Nine"); user9.setAge(30);
-        User user10 = new User(); user10.setId(13L); user10.setName("User"); user10.setSurname("Ten"); user10.setAge(30);
-
-        List<Long> customerIds = List.of(4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 13L);
-        List<User> customers = List.of(user1, user2, user3, user4, user5, user6, user7, user8, user9, user10);
-
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(TypeBoard.HALF);
-        request.setCustomerIds(customerIds);
+        request.setPassengers(List.of(
+                passenger("User", "One", 30),
+                passenger("User", "Two", 30),
+                passenger("User", "Three", 30),
+                passenger("User", "Four", 30),
+                passenger("User", "Five", 30),
+                passenger("User", "Six", 30),
+                passenger("User", "Seven", 30),
+                passenger("User", "Eight", 30),
+                passenger("User", "Nine", 30),
+                passenger("User", "Ten", 30)
+        ));
         request.setIsGroup(true);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findAllById(any())).thenReturn(customers);
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -226,7 +212,7 @@ class BookingPricingServiceTest {
 
         assertThatThrownBy(() -> bookingPricingService.calculateTotalPrice(booking))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("El tipo de pensión es obligatorio");
+                .hasMessageContaining("tipo de pens");
     }
 
     @Test
@@ -249,11 +235,10 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(TypeBoard.HALF);
-        request.setCustomerIds(List.of(1L));
+        request.setPassengers(List.of(passenger("Adult", "User", 30)));
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         BookingQuoteResponseDTO response = bookingPricingService.quote(request);
 
@@ -269,11 +254,10 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(TypeBoard.HALF);
-        request.setCustomerIds(List.of(1L));
+        request.setPassengers(List.of(passenger("Adult", "User", 30)));
         request.setIsGroup(false);
 
         when(travelRepository.findById(1L)).thenReturn(Optional.of(travel));
-        when(userRepository.findAllById(any())).thenReturn(List.of(adultUser));
 
         assertThatThrownBy(() -> bookingPricingService.quote(request))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -284,11 +268,19 @@ class BookingPricingServiceTest {
         BookingQuoteRequestDTO request = new BookingQuoteRequestDTO();
         request.setTravelId(1L);
         request.setTypeBoard(null);
-        request.setCustomerIds(List.of(1L));
+        request.setPassengers(List.of(passenger("Adult", "User", 30)));
         request.setIsGroup(false);
 
         assertThatThrownBy(() -> bookingPricingService.quote(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("El tipo de pensión es obligatorio");
+                .hasMessageContaining("tipo de pens");
+    }
+
+    private PassengerRequestDTO passenger(String name, String surname, int yearsAgo) {
+        PassengerRequestDTO passenger = new PassengerRequestDTO();
+        passenger.setName(name);
+        passenger.setSurname(surname);
+        passenger.setBirthDate(LocalDate.now().minusYears(yearsAgo));
+        return passenger;
     }
 }

@@ -5,6 +5,7 @@ import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.model.Role;
 import com.inditex.g1_agencia_viajes.repository.EmployeeRepository;
 import com.inditex.g1_agencia_viajes.security.JwtUtil;
+import com.inditex.g1_agencia_viajes.security.LoginRateLimiter;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +36,9 @@ class AuthenticationControllerTest {
 
     @MockitoBean
     private JwtUtil jwtUtil;
+
+    @MockitoBean
+    private LoginRateLimiter rateLimiter;
 
 
 

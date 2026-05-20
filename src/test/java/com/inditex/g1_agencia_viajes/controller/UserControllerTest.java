@@ -90,6 +90,7 @@ class UserControllerTest {
                     "name": "John",
                     "surname": "Doe",
                     "email": "john@email.com",
+                    "dni": "12345678A",
                     "age": 30
                 }
                 """;
@@ -122,7 +123,8 @@ class UserControllerTest {
                 {
                     "name": "John Updated",
                     "surname": "Doe",
-                    "email": "john@email.com"
+                    "email": "john@email.com",
+                    "dni": "12345678A"
                 }
                 """;
 

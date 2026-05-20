@@ -6,6 +6,7 @@ import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.OfferMapper;
 import com.inditex.g1_agencia_viajes.model.Offer;
 import com.inditex.g1_agencia_viajes.repository.OfferRepository;
+import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +39,7 @@ class OfferServiceTest {
 
     @BeforeEach
     void setUp() {
-        offerMapper = new OfferMapper();
+        offerMapper = Mappers.getMapper(OfferMapper.class);
         offerService = new OfferService(offerRepository, offerMapper);
 
         offer = new Offer();
@@ -80,6 +81,8 @@ class OfferServiceTest {
     @Test
     void save_ShouldThrowWhenEndDateBeforeStartDate() {
         OfferRequestDTO dto = new OfferRequestDTO();
+        dto.setStartDate(LocalDate.of(2026, 3, 1));
+        dto.setEndDate(LocalDate.of(2026, 6, 1));
         dto.setStartDate(LocalDate.of(2026, 6, 1));
         dto.setEndDate(LocalDate.of(2026, 5, 1));
 
@@ -152,6 +155,8 @@ class OfferServiceTest {
         when(offerRepository.findById(99L)).thenReturn(Optional.empty());
 
         OfferRequestDTO dto = new OfferRequestDTO();
+        dto.setStartDate(LocalDate.of(2026, 3, 1));
+        dto.setEndDate(LocalDate.of(2026, 6, 1));
         assertThatThrownBy(() -> offerService.update(99L, dto))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("No hemos podido encontrar la información de la oferta");

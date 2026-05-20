@@ -19,6 +19,7 @@ public class UserRequestDTO {
     @NotBlank(message = "El email es obligatorio")
     private String email;
 
+    @NotBlank(message = "El DNI es obligatorio")
     @Pattern(regexp = "^[0-9]{8}[A-Z]$", message = "El DNI no tiene un formato válido")
     private String dni;
 

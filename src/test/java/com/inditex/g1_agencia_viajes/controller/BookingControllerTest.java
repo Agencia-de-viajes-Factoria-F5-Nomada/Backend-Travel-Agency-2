@@ -106,7 +106,13 @@ class BookingControllerTest {
                 {
                     "travelId": 1,
                     "typeBoard": "HALF",
-                    "customerIds": [1]
+                    "passengers": [
+                        {
+                            "name": "Ana",
+                            "surname": "Lopez",
+                            "birthDate": "1995-01-01"
+                        }
+                    ]
                 }
                 """;
 
