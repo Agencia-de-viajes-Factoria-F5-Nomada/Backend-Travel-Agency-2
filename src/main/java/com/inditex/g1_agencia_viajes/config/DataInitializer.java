@@ -32,9 +32,9 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Creando empleados iniciales...");
 
         createEmployee("Carlos", "Perez", "carlos@nomada.es", Gender.MALE, 40, true, Role.ADMIN);
-        createEmployee("Ana", "Sanchez", "ana@nomada.es", Gender.FEMALE, 35, true, Role.EDITOR);
-        createEmployee("Sofia", "Oliveira", "sofia@nomada.es", Gender.FEMALE, 40, true, Role.VIEWER);
-        createEmployee("David", "Thimotheo", "david@nomada.es", Gender.MALE, 20, true, Role.VIEWER);
+        createEmployee("Ana", "Sanchez", "ana@nomada.es", Gender.FEMALE, 35, true, Role.EMPLOYEE);
+        createEmployee("Sofia", "Oliveira", "sofia@nomada.es", Gender.FEMALE, 40, true, Role.EMPLOYEE);
+        createEmployee("David", "Thimotheo", "david@nomada.es", Gender.MALE, 20, true, Role.EMPLOYEE);
 
         log.info("4 empleados iniciales creados correctamente.");
     }

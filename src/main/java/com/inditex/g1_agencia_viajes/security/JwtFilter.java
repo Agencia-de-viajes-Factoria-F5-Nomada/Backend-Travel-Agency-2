@@ -66,12 +66,7 @@ public class JwtFilter implements Filter {
             String roleStr = jwt.getClaim("role").asString();
             Role role = roleStr != null ? Role.valueOf(roleStr) : null;
 
-            if (role == Role.VIEWER && !method.equals("GET")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "No tienes permisos para modificar datos");
-                return;
-            }
-
-            if (role == Role.EDITOR && !method.equals("GET") && path.startsWith("/api/employees")) {
+            if (role == Role.EMPLOYEE && !method.equals("GET") && path.startsWith("/api/employees")) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "No tienes permisos para gestionar empleados");
                 return;
             }

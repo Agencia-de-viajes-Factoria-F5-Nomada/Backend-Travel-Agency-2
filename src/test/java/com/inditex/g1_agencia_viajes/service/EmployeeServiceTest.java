@@ -3,6 +3,7 @@ package com.inditex.g1_agencia_viajes.service;
 import com.inditex.g1_agencia_viajes.dto.EmployeeRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.EmployeeResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
+import com.inditex.g1_agencia_viajes.mapper.EmployeeMapper;
 import com.inditex.g1_agencia_viajes.model.Employee;
 import com.inditex.g1_agencia_viajes.model.Gender;
 import com.inditex.g1_agencia_viajes.model.Role;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +31,9 @@ class EmployeeServiceTest {
     @Mock
     private EmployeeRepository employeeRepository;
 
+    @Mock
+    private EmployeeMapper employeeMapper;
+
     private EmployeeService employeeService;
 
     private Employee employee;
@@ -38,7 +41,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        employeeService = new EmployeeService(employeeRepository);
+        employeeService = new EmployeeService(employeeRepository, employeeMapper);
 
         employee = new Employee();
         employee.setEmployeeId(1L);
@@ -48,7 +51,7 @@ class EmployeeServiceTest {
         employee.setGender(Gender.MALE);
         employee.setWorkHour(40);
         employee.setHired(true);
-        employee.setRole(Role.EDITOR);
+        employee.setRole(Role.EMPLOYEE);
         employee.setPassword("$2a$10$hashedPassword");
 
         requestDTO = new EmployeeRequestDTO();
@@ -58,7 +61,7 @@ class EmployeeServiceTest {
         requestDTO.setGender(Gender.MALE);
         requestDTO.setWorkHour(40);
         requestDTO.setHired(true);
-        requestDTO.setRole(Role.EDITOR);
+        requestDTO.setRole(Role.EMPLOYEE);
         requestDTO.setPassword("plainPassword");
     }
 
@@ -107,7 +110,7 @@ class EmployeeServiceTest {
         Page<EmployeeResponseDTO> result = employeeService.getAllEmployees(Pageable.unpaged());
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getName()).isEqualTo("John");
+        assertThat(result.getContent().getFirst().getName()).isEqualTo("John");
     }
 
     @Test
