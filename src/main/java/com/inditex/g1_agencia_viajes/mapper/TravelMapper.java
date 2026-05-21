@@ -11,7 +11,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {OfferMapper.class})
 public interface TravelMapper {
 
     default Travel toEntity(TravelRequestDTO dto, Hotel hotel) {
@@ -30,6 +30,7 @@ public interface TravelMapper {
     @Mapping(target = "hotelImageUrl", source = "hotel.imageUrl")
     @Mapping(target = "halfBoardPrice", source = "hotel.halfBoardPrice")
     @Mapping(target = "fullBoardPrice", source = "hotel.fullBoardPrice")
+    @Mapping(target = "offer", source = "offer")
     TravelResponseDTO toDTO(Travel travel);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

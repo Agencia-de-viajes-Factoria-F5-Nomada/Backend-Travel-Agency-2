@@ -24,4 +24,6 @@ public class TravelResponseDTO {
     private Double discountPercentage;
     private Double halfBoardPrice;
     private Double fullBoardPrice;
+
+    private OfferResponseDTO offer;
 }
