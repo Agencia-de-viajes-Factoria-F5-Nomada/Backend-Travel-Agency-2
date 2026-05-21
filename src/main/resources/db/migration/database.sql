@@ -107,13 +107,13 @@ INSERT INTO users (name, surname, email, phone, dni, age, passport, tutor_id, ac
 ('Manuel', 'Vargas Rodríguez', 'manuel.vargas@email.com', '621234567', '78901234T', 44, 'PAT123456', NULL, true);
 
 INSERT INTO employees (name, surname, email, gender, work_hour, hired, role, password, active) VALUES
-('Carmen', 'López Fernández', 'carmen.lopez@agencia.com', 'FEMALE', 40, true, 'ADMIN', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
-('Antonio', 'García Ruiz', 'antonio.garcia@agencia.com', 'MALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
-('María José', 'Sánchez Torres', 'mariajose.sanchez@agencia.com', 'FEMALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
-('Francisco', 'Martínez Rodríguez', 'francisco.martinez@agencia.com', 'MALE', 40, true, 'MANAGER', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
-('Rosa', 'Fernández Gómez', 'rosa.fernandez@agencia.com', 'FEMALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
-('José Luis', 'Torres Sánchez', 'joseluis.torres@agencia.com', 'MALE', 40, true, 'ADMIN', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
-('Lucía', 'Jiménez Ruiz', 'lucia.jimenez@agencia.com', 'FEMALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true);
+('Carlos', 'Pérez Fernández', 'carlos.perez@nomada.es', 'MALE', 40, true, 'ADMIN', '$2a$10$L.loGxucx5aUWLa8ZKt1iOyIwq2Tf0mNnm1b9MRoqUQMtR5vr7132', true),
+('Antonio', 'García Ruiz', 'antonio.garcia@nomada.es', 'MALE', 40, true, 'EMPLOYEE', '$2a$10$L.loGxucx5aUWLa8ZKt1iOyIwq2Tf0mNnm1b9MRoqUQMtR5vr7132', true),
+('María José', 'Sánchez Torres', 'mariajose.sanchez@nomada.es', 'FEMALE', 40, true, 'EMPLOYEE', '$2a$10$L.loGxucx5aUWLa8ZKt1iOyIwq2Tf0mNnm1b9MRoqUQMtR5vr7132', true),
+('Francisco', 'Martínez Rodríguez', 'francisco.martinez@nomada.es', 'MALE', 40, true, 'EMPLOYEE', '$2a$10$L.loGxucx5aUWLa8ZKt1iOyIwq2Tf0mNnm1b9MRoqUQMtR5vr7132', true),
+('Rosa', 'Fernández Gómez', 'rosa.fernandez@nomada.es', 'FEMALE', 40, true, 'EMPLOYEE', '$$2a$10$L.loGxucx5aUWLa8ZKt1iOyIwq2Tf0mNnm1b9MRoqUQMtR5vr7132', true),
+('José Luis', 'Torres Sánchez', 'joseluis.torres@nomada.es', 'MALE', 40, true, 'ADMIN', '$2a$10$L.loGxucx5aUWLa8ZKt1iOyIwq2Tf0mNnm1b9MRoqUQMtR5vr7132', true),
+('Lucía', 'Jiménez Ruiz', 'lucia.jimenez@nomada.es', 'FEMALE', 40, true, 'EMPLOYEE', '$2a$10$L.loGxucx5aUWLa8ZKt1iOyIwq2Tf0mNnm1b9MRoqUQMtR5vr7132', true);
 
 INSERT INTO travels (destiny, start_date, end_date, sale, offer_id, hotel_id, available_places, active) VALUES
 ('Barcelona y Costa Brava - 5 días', '2026-06-10', '2026-06-14', true, 1, 1, 35, true),
@@ -298,21 +298,21 @@ INSERT INTO trip_segments (travel_id, origin, destination, start_time, end_time,
 (25, 'San Sebastián', 'Barcelona', '2026-07-30 07:00:00', '2026-07-30 16:00:00', 6, 6, 'Regreso');
 
 INSERT INTO bookings (booking_id, bought_date, type_board, is_group, total_price, travels_id, employee_id) VALUES
-(1, '2026-05-15 10:30:00', 'FULL_BOARD', true, 2650.00, 1, 2),
-(2, '2026-05-16 11:45:00', 'HALF_BOARD', false, 1950.00, 2, 3),
-(3, '2026-05-17 09:20:00', 'FULL_BOARD', true, 1450.00, 5, 2),
-(4, '2026-05-18 14:00:00', 'HALF_BOARD', false, 1600.00, 4, 5),
-(5, '2026-05-19 16:30:00', 'FULL_BOARD', true, 1700.00, 6, 1),
-(6, '2026-05-20 10:00:00', 'HALF_BOARD', false, 2500.00, 12, 4),
-(7, '2026-05-21 12:15:00', 'FULL_BOARD', true, 2700.00, 13, 3),
-(8, '2026-05-22 08:45:00', 'HALF_BOARD', false, 1800.00, 9, 2),
-(9, '2026-05-23 15:30:00', 'FULL_BOARD', true, 2200.00, 10, 6),
-(10, '2026-05-24 11:00:00', 'HALF_BOARD', false, 2400.00, 11, 1),
-(11, '2026-05-25 13:20:00', 'FULL_BOARD', true, 1900.00, 14, 5),
-(12, '2026-05-26 09:50:00', 'HALF_BOARD', false, 1350.00, 7, 3),
-(13, '2026-05-27 14:40:00', 'FULL_BOARD', true, 1550.00, 15, 2),
-(14, '2026-05-28 10:30:00', 'HALF_BOARD', false, 1650.00, 16, 4),
-(15, '2026-05-29 16:00:00', 'FULL_BOARD', true, 1400.00, 17, 1);
+(1, '2026-05-15 10:30:00', 'FULL', true, 2650.00, 1, 2),
+(2, '2026-05-16 11:45:00', 'HALF', false, 1950.00, 2, 3),
+(3, '2026-05-17 09:20:00', 'FULL', true, 1450.00, 5, 2),
+(4, '2026-05-18 14:00:00', 'HALF', false, 1600.00, 4, 5),
+(5, '2026-05-19 16:30:00', 'FULL', true, 1700.00, 6, 1),
+(6, '2026-05-20 10:00:00', 'HALF', false, 2500.00, 12, 4),
+(7, '2026-05-21 12:15:00', 'FULL', true, 2700.00, 13, 3),
+(8, '2026-05-22 08:45:00', 'HALF', false, 1800.00, 9, 2),
+(9, '2026-05-23 15:30:00', 'FULL', true, 2200.00, 10, 6),
+(10, '2026-05-24 11:00:00', 'HALF', false, 2400.00, 11, 1),
+(11, '2026-05-25 13:20:00', 'FULL', true, 1900.00, 14, 5),
+(12, '2026-05-26 09:50:00', 'HALF', false, 1350.00, 7, 3),
+(13, '2026-05-27 14:40:00', 'FULL', true, 1550.00, 15, 2),
+(14, '2026-05-28 10:30:00', 'HALF', false, 1650.00, 16, 4),
+(15, '2026-05-29 16:00:00', 'FULL', true, 1400.00, 17, 1);
 
 INSERT INTO customers_bookings (booking_id, customer_id) VALUES
 (1, 1),
