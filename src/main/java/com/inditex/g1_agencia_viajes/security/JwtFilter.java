@@ -45,7 +45,8 @@ public class JwtFilter implements Filter {
 
         if (method.equals("GET")
                 && !path.startsWith("/api/users")
-                && !path.startsWith("/api/bookings")) {
+                && !path.startsWith("/api/bookings")
+                && !path.startsWith("/api/employees")) {
             chain.doFilter(request, response);
             return;
         }

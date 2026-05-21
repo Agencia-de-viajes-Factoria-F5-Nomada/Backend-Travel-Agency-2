@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.controller;
 
 import com.inditex.g1_agencia_viajes.dto.OfferRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.OfferResponseDTO;
+import com.inditex.g1_agencia_viajes.model.OfferType;
 import com.inditex.g1_agencia_viajes.service.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,5 +55,19 @@ public class OfferController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         offerService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/inserso")
+    @Operation(summary = "Obtener ofertas tipo INSERSO")
+    public ResponseEntity<Page<OfferResponseDTO>> getInsersoOffers(
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(offerService.findByOfferType(OfferType.INSERSO, pageable));
+    }
+
+    @GetMapping("/general")
+    @Operation(summary = "Obtener ofertas tipo GENERAL")
+    public ResponseEntity<Page<OfferResponseDTO>> getGeneralOffers(
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(offerService.findByOfferType(OfferType.GENERAL, pageable));
     }
 }

@@ -38,3 +38,4 @@ build/
 /docs/
 /docs/AUDIT.md
 .env
+API_DOCUMENTATION.md
