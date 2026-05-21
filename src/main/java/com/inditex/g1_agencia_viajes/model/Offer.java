@@ -39,6 +39,10 @@ public class Offer {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "offer_type")
+    private OfferType offerType = OfferType.GENERAL;
+
     @JsonIgnore
     @OneToMany(mappedBy = "offer", cascade = CascadeType.ALL)
     private List<Travel> travels = new ArrayList<>();

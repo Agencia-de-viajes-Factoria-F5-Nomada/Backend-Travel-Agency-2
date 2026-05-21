@@ -5,6 +5,7 @@ import com.inditex.g1_agencia_viajes.dto.OfferResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.OfferMapper;
 import com.inditex.g1_agencia_viajes.model.Offer;
+import com.inditex.g1_agencia_viajes.model.OfferType;
 import com.inditex.g1_agencia_viajes.repository.OfferRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,12 @@ public class OfferService {
     @Transactional(readOnly = true)
     public Optional<OfferResponseDTO> findById(Long id) {
         return offerRepository.findById(id)
+                .map(offerMapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OfferResponseDTO> findByOfferType(OfferType type, Pageable pageable) {
+        return offerRepository.findByOfferType(type, pageable)
                 .map(offerMapper::toDTO);
     }
 

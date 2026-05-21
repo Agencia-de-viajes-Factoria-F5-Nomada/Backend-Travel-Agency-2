@@ -1,5 +1,6 @@
 package com.inditex.g1_agencia_viajes.dto;
 
+import com.inditex.g1_agencia_viajes.model.OfferType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -20,4 +21,6 @@ public class OfferRequestDTO {
 
     @NotNull(message = "La fecha de fin es obligatoria")
     private LocalDate endDate;
+
+    private OfferType offerType;
 }
