@@ -45,4 +45,6 @@ public class TripSegment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id", nullable = false)
     private Driver driver;
+
+    private String activityName;
 }

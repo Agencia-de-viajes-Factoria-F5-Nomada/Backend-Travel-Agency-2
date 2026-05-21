@@ -81,6 +81,7 @@ class TripSegmentServiceTest {
         tripSegment.setEndTime(LocalDateTime.of(2026, 6, 15, 12, 0));
         tripSegment.setBus(bus);
         tripSegment.setDriver(driver);
+        tripSegment.setActivityName("Traslado Madrid - Barcelona");
     }
 
     @Test

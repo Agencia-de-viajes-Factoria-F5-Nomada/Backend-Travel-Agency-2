@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.controller;
 
 import com.inditex.g1_agencia_viajes.dto.TravelRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TravelResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.TripSegmentResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.service.TravelService;
 import org.junit.jupiter.api.Test;
@@ -149,5 +150,32 @@ class TravelControllerTest {
 
         mockMvc.perform(delete("/api/travels/1"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void getTripSegments_ShouldReturn200() throws Exception {
+        TripSegmentResponseDTO segment = new TripSegmentResponseDTO();
+        segment.setId(1L);
+        segment.setOrigin("Madrid");
+        segment.setDestination("Toledo");
+        segment.setActivityName("Visita Alcázar");
+
+        when(travelService.getTripSegmentsByTravelId(any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(segment)));
+
+        mockMvc.perform(get("/api/travels/1/segments"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].origin").value("Madrid"))
+                .andExpect(jsonPath("$.content[0].activityName").value("Visita Alcázar"));
+    }
+
+    @Test
+    void getTripSegments_ShouldReturn404() throws Exception {
+        when(travelService.getTripSegmentsByTravelId(any(), any(Pageable.class)))
+                .thenThrow(new ResourceNotFoundException("el viaje", 99L));
+
+        mockMvc.perform(get("/api/travels/99/segments"))
+                .andExpect(status().isNotFound());
     }
 }

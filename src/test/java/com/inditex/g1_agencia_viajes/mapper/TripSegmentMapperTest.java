@@ -38,6 +38,7 @@ class TripSegmentMapperTest {
         segment.setEndTime(LocalDateTime.of(2026, 7, 1, 12, 0));
         segment.setBus(bus);
         segment.setDriver(driver);
+        segment.setActivityName("Visita Museo Guggenheim");
 
         TripSegmentResponseDTO dto = mapper.toDTO(segment);
 
@@ -51,6 +52,7 @@ class TripSegmentMapperTest {
         assertThat(dto.getBusLicensePlate()).isEqualTo("1234-ABC");
         assertThat(dto.getDriverId()).isEqualTo(20L);
         assertThat(dto.getDriverName()).isEqualTo("Carlos Ruiz");
+        assertThat(dto.getActivityName()).isEqualTo("Visita Museo Guggenheim");
     }
 
     @Test

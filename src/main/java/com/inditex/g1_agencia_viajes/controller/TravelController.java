@@ -2,6 +2,7 @@ package com.inditex.g1_agencia_viajes.controller;
 
 import com.inditex.g1_agencia_viajes.dto.TravelRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TravelResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.TripSegmentResponseDTO;
 import com.inditex.g1_agencia_viajes.service.TravelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,5 +65,13 @@ public class TravelController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         travelService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/segments")
+    @Operation(summary = "Obtener los trayectos de un viaje")
+    public ResponseEntity<Page<TripSegmentResponseDTO>> getTripSegments(
+            @PathVariable Long id,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(travelService.getTripSegmentsByTravelId(id, pageable));
     }
 }

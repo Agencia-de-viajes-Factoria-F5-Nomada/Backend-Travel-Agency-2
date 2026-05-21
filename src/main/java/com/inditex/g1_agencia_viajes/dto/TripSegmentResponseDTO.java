@@ -17,4 +17,5 @@ public class TripSegmentResponseDTO {
     private String busLicensePlate;
     private Long driverId;
     private String driverName;
+    private String activityName;
 }

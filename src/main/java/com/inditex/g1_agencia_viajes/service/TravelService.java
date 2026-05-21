@@ -2,12 +2,15 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.TravelRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TravelResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.TripSegmentResponseDTO;
 import com.inditex.g1_agencia_viajes.mapper.TravelMapper;
+import com.inditex.g1_agencia_viajes.mapper.TripSegmentMapper;
 import com.inditex.g1_agencia_viajes.model.Hotel;
 import com.inditex.g1_agencia_viajes.model.Travel;
 import com.inditex.g1_agencia_viajes.repository.HotelRepository;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
+import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,8 @@ public class TravelService {
     private final TravelRepository travelRepository;
     private final HotelRepository hotelRepository;
     private final TravelMapper travelMapper;
+    private final TripSegmentRepository tripSegmentRepository;
+    private final TripSegmentMapper tripSegmentMapper;
 
     @Transactional(readOnly = true)
     public Page<TravelResponseDTO> getAll(Pageable pageable) {
@@ -74,5 +79,14 @@ public class TravelService {
                 .orElseThrow(() -> new ResourceNotFoundException("el viaje", id));
         travel.setActive(false);
         travelRepository.save(travel);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TripSegmentResponseDTO> getTripSegmentsByTravelId(Long travelId, Pageable pageable) {
+        if (!travelRepository.existsById(travelId)) {
+            throw new ResourceNotFoundException("el viaje", travelId);
+        }
+        return tripSegmentRepository.findByTravelId(travelId, pageable)
+                .map(tripSegmentMapper::toDTO);
     }
 }

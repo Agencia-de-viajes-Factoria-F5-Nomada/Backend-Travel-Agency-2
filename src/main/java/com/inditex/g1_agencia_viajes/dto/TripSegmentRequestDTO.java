@@ -29,4 +29,6 @@ public class TripSegmentRequestDTO {
 
     @NotNull(message = "Driver is required")
     private Long driverId;
+
+    private String activityName;
 }

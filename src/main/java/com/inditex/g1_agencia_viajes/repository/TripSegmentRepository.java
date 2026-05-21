@@ -2,6 +2,8 @@ package com.inditex.g1_agencia_viajes.repository;
 
 import com.inditex.g1_agencia_viajes.model.Driver;
 import com.inditex.g1_agencia_viajes.model.TripSegment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,8 @@ import java.util.List;
 public interface TripSegmentRepository extends JpaRepository<TripSegment, Long> {
 
     List<TripSegment> findByTravelId(Long travelId);
+
+    Page<TripSegment> findByTravelId(Long travelId, Pageable pageable);
 
     @Query("SELECT ts FROM TripSegment ts WHERE ts.driver = :driver " +
            "AND ((ts.startTime <= :endTime AND ts.endTime >= :startTime))")

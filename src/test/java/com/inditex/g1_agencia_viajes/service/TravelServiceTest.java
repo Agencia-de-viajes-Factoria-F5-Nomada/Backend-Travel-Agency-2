@@ -2,13 +2,17 @@ package com.inditex.g1_agencia_viajes.service;
 
 import com.inditex.g1_agencia_viajes.dto.TravelRequestDTO;
 import com.inditex.g1_agencia_viajes.dto.TravelResponseDTO;
+import com.inditex.g1_agencia_viajes.dto.TripSegmentResponseDTO;
 import com.inditex.g1_agencia_viajes.exception.ResourceNotFoundException;
 import com.inditex.g1_agencia_viajes.mapper.TravelMapper;
+import com.inditex.g1_agencia_viajes.mapper.TripSegmentMapper;
 import com.inditex.g1_agencia_viajes.model.Hotel;
 import com.inditex.g1_agencia_viajes.model.Offer;
 import com.inditex.g1_agencia_viajes.model.Travel;
+import com.inditex.g1_agencia_viajes.model.TripSegment;
 import com.inditex.g1_agencia_viajes.repository.HotelRepository;
 import com.inditex.g1_agencia_viajes.repository.TravelRepository;
+import com.inditex.g1_agencia_viajes.repository.TripSegmentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -39,6 +44,12 @@ class TravelServiceTest {
     @Mock
     private TravelMapper travelMapper;
 
+    @Mock
+    private TripSegmentRepository tripSegmentRepository;
+
+    @Mock
+    private TripSegmentMapper tripSegmentMapper;
+
     private TravelService travelService;
 
     private Travel travel;
@@ -50,7 +61,7 @@ class TravelServiceTest {
 
     @BeforeEach
     void setUp() {
-        travelService = new TravelService(travelRepository, hotelRepository, travelMapper);
+        travelService = new TravelService(travelRepository, hotelRepository, travelMapper, tripSegmentRepository, tripSegmentMapper);
 
         hotel = new Hotel();
         hotel.setId(1L);
@@ -238,6 +249,39 @@ class TravelServiceTest {
         when(travelRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> travelService.delete(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("No hemos podido encontrar la información de el viaje, con el id: 99");
+    }
+
+    @Test
+    void getTripSegmentsByTravelId_ShouldReturnSegments() {
+        TripSegment segment = new TripSegment();
+        segment.setId(1L);
+        segment.setOrigin("Madrid");
+        segment.setDestination("Toledo");
+        segment.setStartTime(LocalDateTime.of(2026, 7, 1, 8, 0));
+        segment.setEndTime(LocalDateTime.of(2026, 7, 1, 10, 0));
+
+        TripSegmentResponseDTO segmentDTO = new TripSegmentResponseDTO();
+        segmentDTO.setId(1L);
+        segmentDTO.setOrigin("Madrid");
+        segmentDTO.setDestination("Toledo");
+
+        when(travelRepository.existsById(1L)).thenReturn(true);
+        when(tripSegmentRepository.findByTravelId(1L, Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(segment)));
+        when(tripSegmentMapper.toDTO(segment)).thenReturn(segmentDTO);
+
+        Page<TripSegmentResponseDTO> result = travelService.getTripSegmentsByTravelId(1L, Pageable.unpaged());
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getOrigin()).isEqualTo("Madrid");
+    }
+
+    @Test
+    void getTripSegmentsByTravelId_ShouldThrowWhenTravelNotFound() {
+        when(travelRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> travelService.getTripSegmentsByTravelId(99L, Pageable.unpaged()))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("No hemos podido encontrar la información de el viaje, con el id: 99");
     }
