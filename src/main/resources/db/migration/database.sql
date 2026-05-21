@@ -1,0 +1,343 @@
+use travel_agency;
+
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE customers_bookings;
+TRUNCATE TABLE bookings;
+TRUNCATE TABLE trip_segments;
+TRUNCATE TABLE travels;
+TRUNCATE TABLE hotels;
+TRUNCATE TABLE offers;
+TRUNCATE TABLE buses;
+TRUNCATE TABLE drivers;
+TRUNCATE TABLE users;
+SET FOREIGN_KEY_CHECKS = 1;
+
+INSERT INTO offers (offer_id, discount_percentage, start_date, end_date) VALUES
+(1, 10.00, '2026-01-01', '2026-12-31'),
+(2, 5.00, '2026-01-01', '2026-12-31'),
+(3, 0.00, '2026-01-01', '2026-12-31'),
+(4, 15.00, '2026-01-01', '2026-12-31'),
+(5, 12.00, '2026-01-01', '2026-12-31'),
+(6, 20.00, '2026-01-01', '2026-12-31'),
+(7, 18.00, '2026-01-01', '2026-12-31'),
+(8, 25.00, '2026-01-01', '2026-12-31'),
+(9, 22.00, '2026-01-01', '2026-12-31');
+
+INSERT INTO hotels (name, address, city, country, stars, capacity, available_places, full_board_price, half_board_price, image_url, active) VALUES
+('Hotel Arts Barcelona', 'C/ de la Marina 25', 'Barcelona', 'España', 5, 100, 100, 2500.00, 1950.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('W Barcelona', 'Passeig de Joan de Borbó 6', 'Barcelona', 'España', 5, 90, 90, 2700.00, 2100.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Hotel Majestic Barcelona', 'Passeig de Gràcia 70', 'Barcelona', 'España', 5, 80, 80, 2900.00, 2300.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Hotel Condes de Barcelona', 'Passeig de Gràcia 73', 'Barcelona', 'España', 4, 120, 120, 1600.00, 1250.00, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=480&fit=crop', true),
+('NH Barcelona Eixample', 'C/ del Bruc 89', 'Barcelona', 'España', 4, 95, 95, 1400.00, 1100.00, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=480&fit=crop', true),
+('Palacio de los Duques Gran Meliá', 'C/ de la Cuesta de los Alamos 3', 'Madrid', 'España', 5, 90, 90, 2800.00, 2200.00, 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&h=480&fit=crop', true),
+('Hotel Ritz Madrid', 'Plaza de la Lealtad 5', 'Madrid', 'España', 5, 100, 100, 3000.00, 2400.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('Gran Meliá Fénix', 'Plaza del Callao 1', 'Madrid', 'España', 5, 85, 85, 2650.00, 2100.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Hotel Emperador', 'Gran Vía 53', 'Madrid', 'España', 4, 120, 120, 1500.00, 1150.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Only You Hotel Atocha', 'C/ de Alfonso XII 11', 'Madrid', 'España', 4, 80, 80, 1350.00, 1050.00, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=480&fit=crop', true),
+('Hotel Alfonso XIII', 'C/ San Fernando 2', 'Sevilla', 'España', 5, 80, 80, 2400.00, 1900.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('Hacienda Santa María', 'C/ Don Remondo 4', 'Sevilla', 'España', 4, 70, 70, 1700.00, 1350.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Hotel Casa de los Carmona', 'C/ de la Bañuelos 9', 'Sevilla', 'España', 3, 50, 50, 950.00, 750.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Palacio Vallier 5*', 'Plaza del Leggle 1', 'Valencia', 'España', 5, 60, 60, 2100.00, 1650.00, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=480&fit=crop', true),
+('Hotel Caro', 'C/ de la Culla 29', 'Valencia', 'España', 4, 80, 80, 1550.00, 1200.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('Hotel del Pintor', 'C/ Torería 4', 'Málaga', 'España', 4, 60, 60, 1400.00, 1100.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Málaga Premium', 'Paseo de la Farola 3', 'Málaga', 'España', 3, 70, 70, 980.00, 780.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Hotel Alhambra Palace', 'Peña de la Silla 2', 'Granada', 'España', 4, 90, 90, 1800.00, 1400.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('Parador de Granada', 'C/ Real de la Alhambra 12', 'Granada', 'España', 4, 70, 70, 1900.00, 1500.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Hotel María Cristina', 'C/ Okendo 1', 'San Sebastián', 'España', 5, 75, 75, 2400.00, 1900.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Hotel Carlton Bilbao', 'Plaza de Don Federico Moyúa 2', 'Bilbao', 'España', 5, 80, 80, 2200.00, 1750.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('Hotel G-Mak', 'C/ de García Morato 17', 'Palma de Mallorca', 'España', 4, 85, 85, 1750.00, 1350.00, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=480&fit=crop', true),
+('Iberostar Selection Lanzarote', 'C/ Janubio 2', 'Lanzarote', 'España', 5, 100, 100, 2300.00, 1800.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Hotel San Pablo Sevilla', 'C/ de Erase 8', 'Sevilla', 'España', 4, 90, 90, 1450.00, 1150.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Hotel Valencia Center', 'C/ de la Fuencalada 42', 'Valencia', 'España', 4, 100, 100, 1350.00, 1050.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('Hotel Sierra de Grazalema', 'C/ de la Singularidad 6', 'Grazalema', 'España', 3, 45, 45, 850.00, 680.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Parador de Ronda', 'Plaza de España 15', 'Ronda', 'España', 4, 60, 60, 1650.00, 1300.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Hotel del Monasterio', 'C/ de los Reyes Católicos 21', 'Santiago de Compostela', 'España', 4, 70, 70, 1700.00, 1350.00, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=480&fit=crop', true),
+('Hotel Reina Mora', 'C/ de la Luna 14', 'Granada', 'España', 4, 65, 65, 1550.00, 1200.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Hotel Marqués de la Valdecilla', 'C/ del Marqués de la Valdecilla 1', 'Santander', 'España', 3, 55, 55, 920.00, 740.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Gran Hotel La Perla', 'Plaza del Castillo 1', 'Pamplona', 'España', 4, 60, 60, 1450.00, 1150.00, 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=480&fit=crop', true),
+('Hotel de la Reconquista', 'C/ de los Reyes Católicos 6', 'Oviedo', 'España', 5, 75, 75, 2000.00, 1600.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true),
+('Hotel Spa Reyes Católicos', 'Plaza de los Reyes Católicos 5', 'Ávila', 'España', 4, 50, 50, 1300.00, 1000.00, 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=480&fit=crop', true),
+('Parador de Salamanca', 'C/ de la Universidad 2', 'Salamanca', 'España', 4, 70, 70, 1600.00, 1250.00, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=480&fit=crop', true),
+('Hotel Carlos V', 'Plaza del Pilar 1', 'Zaragoza', 'España', 4, 80, 80, 1400.00, 1100.00, 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=480&fit=crop', true);
+
+INSERT INTO buses (capacity, license_plate, bath, wifi, AC, USB, available_places, location) VALUES
+(50, '1234-ABC', true, true, true, true, 50, 'Madrid'),
+(55, '5678-DEF', true, false, true, true, 55, 'Barcelona'),
+(30, '9012-GHI', false, true, true, false, 30, 'Sevilla'),
+(40, '3456-JKL', true, true, true, true, 40, 'Madrid'),
+(45, '7890-MNO', true, true, false, true, 45, 'Valencia'),
+(35, '1112-PQR', true, false, true, true, 35, 'Bilbao'),
+(50, '3334-STU', true, true, true, true, 50, 'Málaga'),
+(40, '5556-VWX', true, true, true, false, 40, 'Palma'),
+(30, '7778-YZA', false, true, true, true, 30, 'Santiago'),
+(45, '9990-BCD', true, true, true, true, 45, 'Sevilla');
+
+INSERT INTO drivers (name, phone, licence_active, bus_id) VALUES
+('Juan Martínez López', '346111222', true, 1),
+('Antonio García Sánchez', '346333444', true, 2),
+('Pedro Rodríguez Fernández', '346555666', true, 3),
+('Manuel López Torres', '346777888', true, 4),
+('Francisco Jiménez Ruiz', '346999000', true, 5),
+('David Martín García', '346222333', true, 6),
+('José Ramón Torres', '346444555', true, 7),
+('Miguel Ángel Sánchez', '346666777', true, 8),
+('Carlos Fernández Díaz', '346888999', true, 9),
+('Alejandro Ruiz Martínez', '346111444', true, 10);
+
+INSERT INTO users (name, surname, email, phone, dni, age, passport, tutor_id, active) VALUES
+('María', 'García López', 'maria.garcia@email.com', '612345678', '12345678A', 42, 'PAA111222', NULL, true),
+('Carlos', 'García López', 'carlos.garcia@email.com', '623456789', '87654321B', 14, 'PAB333444', 1, true),
+('Javier', 'Martínez Ruiz', 'javi.mar@email.com', '634567890', '45678912C', 29, 'PAC555666', NULL, true),
+('Elena', 'Sanz Gómez', 'elena.sanz@email.com', '645678901', '98765432D', 28, 'PAD777888', NULL, true),
+('Lucas', 'Fernández Tomé', 'lucas.ft@email.com', '656789012', '34567890E', 35, 'PAE999000', NULL, true),
+('Roberto', 'Díaz Montero', 'roberto.diaz@email.com', '667890123', '23456789F', 50, 'PAF123456', NULL, true),
+('Lucía', 'Díaz Montero', 'lucia.diaz@email.com', '678901234', '76543210G', 17, 'PAG654321', 6, true),
+('Pablo', 'Hernández García', 'pablo.hernandez@email.com', '689012345', '56789012H', 45, 'PAH111222', NULL, true),
+('Laura', 'López Rodríguez', 'laura.lopez@email.com', '690123456', '67890123I', 33, 'PAI333444', NULL, true),
+('Sergio', 'Martínez Sánchez', 'sergio.ms@email.com', '601234567', '78901234J', 38, 'PAJ555666', NULL, true),
+('Ana', 'Gómez Fernández', 'ana.gomez@email.com', '602345678', '89012345K', 27, 'PAK777888', NULL, true),
+('David', 'Rodríguez Martínez', 'david.rodriguez@email.com', '603456789', '90123456L', 52, 'PAL999000', NULL, true),
+('Isabel', 'Sánchez Torres', 'isabel.sanchez@email.com', '604567890', '01234567M', 41, 'PAM123456', NULL, true),
+('Javier', 'Ruiz Jiménez', 'javier.ruiz@email.com', '605678901', '12345678N', 19, 'PAN654321', 13, true),
+('María José', 'Torres Pérez', 'mariajose.torres@email.com', '606789012', '23456789O', 36, 'PAO111222', NULL, true),
+('Fernando', 'Vega Díaz', 'fernando.vega@email.com', '607890123', '34567890P', 48, 'PAP333444', NULL, true),
+('Cristina', 'Muñoz García', 'cristina.munoz@email.com', '608901234', '45678901Q', 30, 'PAQ555666', NULL, true),
+('Alberto', 'Ruiz López', 'alberto.ruiz@email.com', '609012345', '56789012R', 62, 'PAR777888', NULL, true),
+('Patricia', 'Serrano Martínez', 'patricia.serrano@email.com', '620123456', '67890123S', 25, 'PAS999000', NULL, true),
+('Manuel', 'Vargas Rodríguez', 'manuel.vargas@email.com', '621234567', '78901234T', 44, 'PAT123456', NULL, true);
+
+INSERT INTO employees (name, surname, email, gender, work_hour, hired, role, password, active) VALUES
+('Carmen', 'López Fernández', 'carmen.lopez@agencia.com', 'FEMALE', 40, true, 'ADMIN', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
+('Antonio', 'García Ruiz', 'antonio.garcia@agencia.com', 'MALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
+('María José', 'Sánchez Torres', 'mariajose.sanchez@agencia.com', 'FEMALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
+('Francisco', 'Martínez Rodríguez', 'francisco.martinez@agencia.com', 'MALE', 40, true, 'MANAGER', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
+('Rosa', 'Fernández Gómez', 'rosa.fernandez@agencia.com', 'FEMALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
+('José Luis', 'Torres Sánchez', 'joseluis.torres@agencia.com', 'MALE', 40, true, 'ADMIN', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true),
+('Lucía', 'Jiménez Ruiz', 'lucia.jimenez@agencia.com', 'FEMALE', 40, true, 'SALES', '$2a$10$XqFq7gvJFPF5ZJ8aF9qXJOQZ1VvN1JxK5YqZ1VvN1JxK5YqZ1VvN', true);
+
+INSERT INTO travels (destiny, start_date, end_date, sale, offer_id, hotel_id, available_places, active) VALUES
+('Barcelona y Costa Brava - 5 días', '2026-06-10', '2026-06-14', true, 1, 1, 35, true),
+('Barcelona Premium - Experiencia Completa', '2026-07-01', '2026-07-06', true, 2, 2, 28, true),
+('Madrid Imperial y Bohemia', '2026-06-15', '2026-06-20', false, 3, 6, 40, true),
+('Madrid Lujo y Cultura', '2026-08-10', '2026-08-15', true, 1, 7, 25, true),
+('Sevilla Flamenco y Monumentos', '2026-07-05', '2026-07-10', false, 3, 11, 30, true),
+('Andalucía Integral - 7 días', '2026-09-01', '2026-09-07', true, 2, 11, 22, true),
+('Valencia y la Huerta Valenciana', '2026-06-20', '2026-06-24', true, 4, 14, 32, true),
+('Costa del Sol Luxury', '2026-08-01', '2026-08-06', false, 3, 16, 28, true),
+('Granada y la Alhambra', '2026-07-15', '2026-07-19', true, 1, 18, 20, true),
+('Rutas del Norte - País Vasco y Cantabria', '2026-09-10', '2026-09-17', true, 2, 20, 18, true),
+('Bilbao Arte y Gastronomía', '2026-10-05', '2026-10-10', false, 3, 21, 24, true),
+('Islas Baleares - Mallorca y Menorca', '2026-07-20', '2026-07-27', true, 1, 22, 30, true),
+('Canarias Lujo - Lanzarote Experiencia', '2026-11-01', '2026-11-08', true, 2, 23, 26, true),
+('Santiago y Galicia Mágica', '2026-06-25', '2026-06-30', false, 3, 28, 35, true),
+('Pamplona y la Camino de Santiago', '2026-08-20', '2026-08-25', true, 4, 31, 22, true),
+('Ávila y Salamanca Históricas', '2026-09-15', '2026-09-20', false, 3, 33, 28, true),
+('Zaragoza y el Moncayo', '2026-07-10', '2026-07-14', true, 5, 34, 20, true),
+('Ronda y la Serranía de Grazalema', '2026-10-10', '2026-10-14', true, 6, 26, 15, true),
+('Oviedo y la Costa Verde', '2026-09-25', '2026-09-30', false, 3, 32, 18, true),
+('Valencia Fallas y Gastronomía', '2026-03-15', '2026-03-20', true, 7, 15, 28, true),
+('Barcelona Gaudí y Modernismo', '2026-05-01', '2026-05-05', true, 8, 3, 40, true),
+('Madrid de los Austrias', '2026-04-10', '2026-04-14', false, 3, 9, 45, true),
+('Sevilla Triana y el Arenal', '2026-05-15', '2026-05-19', true, 4, 12, 32, true),
+('Granada Sacromonte y Albaicín', '2026-06-01', '2026-06-05', true, 5, 19, 24, true),
+('San Sebastián Bahía de La Concha', '2026-07-25', '2026-07-30', false, 3, 20, 20, true);
+
+INSERT INTO trip_segments (travel_id, origin, destination, start_time, end_time, bus_id, driver_id, activity_name) VALUES
+(1, 'Madrid', 'Barcelona', '2026-06-10 08:00:00', '2026-06-10 18:00:00', 2, 2, 'Salida desde Madrid - Ruta por el levante'),
+(1, 'Barcelona', 'Costa Brava', '2026-06-11 09:00:00', '2026-06-11 12:00:00', 2, 2, 'Excursión a la Costa Brava - Begur y Cadaqués'),
+(1, 'Costa Brava', 'Barcelona', '2026-06-11 17:00:00', '2026-06-11 20:00:00', 2, 2, 'Regreso a Barcelona'),
+(1, 'Barcelona', 'Barcelona', '2026-06-12 09:00:00', '2026-06-12 14:00:00', 2, 2, 'Visita guiada Sagrada Familia y Park Güell'),
+(1, 'Barcelona', 'Madrid', '2026-06-14 07:00:00', '2026-06-14 17:00:00', 2, 2, 'Regreso a Madrid'),
+
+(2, 'Madrid', 'Barcelona', '2026-07-01 07:00:00', '2026-07-01 17:00:00', 2, 2, 'Trayecto en bus premium'),
+(2, 'Barcelona', 'Barcelona', '2026-07-02 09:00:00', '2026-07-02 13:00:00', 2, 2, 'Tour gastronómico Las Ramblas y Barceloneta'),
+(2, 'Barcelona', 'Montserrat', '2026-07-03 08:00:00', '2026-07-03 14:00:00', 2, 2, 'Excursión Montserrat y almuerzo monasterio'),
+(2, 'Barcelona', 'Barcelona', '2026-07-04 09:00:00', '2026-07-04 18:00:00', 2, 2, 'Día libre en Barcelona - Playa y Shopping'),
+(2, 'Barcelona', 'Girona', '2026-07-05 09:00:00', '2026-07-05 14:00:00', 2, 2, 'Excursión Girona - Calles medievales y Catedral'),
+(2, 'Barcelona', 'Madrid', '2026-07-06 06:00:00', '2026-07-06 16:00:00', 2, 2, 'Regreso a Madrid'),
+
+(3, 'Barcelona', 'Madrid', '2026-06-15 08:00:00', '2026-06-15 18:00:00', 1, 1, 'Ruta hacia Madrid'),
+(3, 'Madrid', 'Madrid', '2026-06-16 09:00:00', '2026-06-16 14:00:00', 1, 1, 'Tour Teatro Real y Palacio Real'),
+(3, 'Madrid', 'El Escorial', '2026-06-17 09:00:00', '2026-06-17 16:00:00', 1, 1, 'Excursión Monasterio de El Escorial'),
+(3, 'Madrid', 'Segovia', '2026-06-18 08:00:00', '2026-06-18 15:00:00', 1, 1, 'Viaje a Segovia - Acueducto y Catedral'),
+(3, 'Madrid', 'Madrid', '2026-06-19 10:00:00', '2026-06-19 14:00:00', 1, 1, 'Visita al Museo del Prado'),
+(3, 'Madrid', 'Barcelona', '2026-06-20 07:00:00', '2026-06-20 17:00:00', 1, 1, 'Regreso'),
+
+(4, 'Sevilla', 'Madrid', '2026-08-10 08:00:00', '2026-08-10 18:00:00', 1, 1, 'Trayecto Sevilla-Madrid'),
+(4, 'Madrid', 'Madrid', '2026-08-11 09:00:00', '2026-08-11 18:00:00', 1, 1, 'Tour privado Madrid Histórico y Plateado'),
+(4, 'Madrid', 'Aranjuez', '2026-08-12 09:00:00', '2026-08-12 16:00:00', 1, 1, 'Excursión Palacio Real de Aranjuez'),
+(4, 'Madrid', 'Toledo', '2026-08-13 08:00:00', '2026-08-13 15:00:00', 1, 1, 'Viaje a Toledo - Ciudad de las Tres Culturas'),
+(4, 'Madrid', 'Madrid', '2026-08-14 10:00:00', '2026-08-14 14:00:00', 1, 1, 'VisitaThyssen y Paseo del Prado'),
+(4, 'Madrid', 'Sevilla', '2026-08-15 07:00:00', '2026-08-15 17:00:00', 1, 1, 'Regreso a Sevilla'),
+
+(5, 'Madrid', 'Sevilla', '2026-07-05 07:00:00', '2026-07-05 17:00:00', 3, 3, 'Trayecto hacia Sevilla'),
+(5, 'Sevilla', 'Sevilla', '2026-07-06 09:00:00', '2026-07-06 14:00:00', 3, 3, 'Tour Alcázar y Catedral'),
+(5, 'Sevilla', 'Triana', '2026-07-07 17:00:00', '2026-07-07 21:00:00', 3, 3, 'Noche de flamenco en Triana'),
+(5, 'Sevilla', 'Córdoba', '2026-07-08 08:00:00', '2026-07-08 15:00:00', 3, 3, 'Excursión Mezquita de Córdoba'),
+(5, 'Sevilla', 'Madrid', '2026-07-10 07:00:00', '2026-07-10 17:00:00', 3, 3, 'Regreso a Madrid'),
+
+(6, 'Madrid', 'Sevilla', '2026-09-01 07:00:00', '2026-09-01 17:00:00', 3, 3, 'Trayecto inicial'),
+(6, 'Sevilla', 'Cádiz', '2026-09-02 08:00:00', '2026-09-02 14:00:00', 3, 3, 'Excursión Cádiz romana'),
+(6, 'Cádiz', 'Jerez', '2026-09-03 09:00:00', '2026-09-03 14:00:00', 3, 3, 'Visita a bodega de sherry en Jerez'),
+(6, 'Jerez', 'Sevilla', '2026-09-04 16:00:00', '2026-09-04 19:00:00', 3, 3, 'Regreso a Sevilla'),
+(6, 'Sevilla', 'Granada', '2026-09-05 08:00:00', '2026-09-05 13:00:00', 3, 3, 'Ruta hacia Granada'),
+(6, 'Granada', 'Madrid', '2026-09-07 06:00:00', '2026-09-07 16:00:00', 3, 3, 'Regreso final'),
+
+(7, 'Madrid', 'Valencia', '2026-06-20 08:00:00', '2026-06-20 16:00:00', 5, 5, 'Trayecto a Valencia'),
+(7, 'Valencia', 'Valencia', '2026-06-21 09:00:00', '2026-06-21 13:00:00', 5, 5, 'Tour Ciudad de las Artes y las Ciencias'),
+(7, 'Valencia', 'Albufera', '2026-06-22 09:00:00', '2026-06-22 14:00:00', 5, 5, 'Excursión a la Albufera - Almuerzo con paella'),
+(7, 'Valencia', 'Madrid', '2026-06-24 07:00:00', '2026-06-24 15:00:00', 5, 5, 'Regreso a Madrid'),
+
+(8, 'Madrid', 'Málaga', '2026-08-01 08:00:00', '2026-08-01 17:00:00', 7, 7, 'Trayecto hacia Málaga'),
+(8, 'Málaga', 'Málaga', '2026-08-02 09:00:00', '2026-08-02 14:00:00', 7, 7, 'Tour Centro Histórico y Alcazaba'),
+(8, 'Málaga', 'Ronda', '2026-08-03 09:00:00', '2026-08-03 15:00:00', 7, 7, 'Excursión Ronda - Tajo y Puentes'),
+(8, 'Málaga', 'Marbella', '2026-08-04 10:00:00', '2026-08-04 15:00:00', 7, 7, 'Mañana en Marbella - Puerto Banús'),
+(8, 'Málaga', 'Madrid', '2026-08-06 07:00:00', '2026-08-06 16:00:00', 7, 7, 'Regreso'),
+
+(9, 'Madrid', 'Granada', '2026-07-15 08:00:00', '2026-07-15 16:00:00', 3, 3, 'Trayecto a Granada'),
+(9, 'Granada', 'Granada', '2026-07-16 09:00:00', '2026-07-16 13:00:00', 3, 3, 'Visita a la Alhambra - Palacio Nazaríes'),
+(9, 'Granada', 'Sacromonte', '2026-07-17 17:00:00', '2026-07-17 21:00:00', 3, 3, 'Cuevas del Sacromonte - Show flamenco'),
+(9, 'Granada', 'Albaicín', '2026-07-18 09:00:00', '2026-07-18 13:00:00', 3, 3, 'Paseo por Albaicín y Mirador de San Nicolás'),
+(9, 'Granada', 'Madrid', '2026-07-19 07:00:00', '2026-07-19 15:00:00', 3, 3, 'Regreso'),
+
+(10, 'Madrid', 'San Sebastián', '2026-09-10 08:00:00', '2026-09-10 17:00:00', 6, 6, 'Ruta hacia el Norte'),
+(10, 'San Sebastián', 'San Sebastián', '2026-09-11 09:00:00', '2026-09-11 13:00:00', 6, 6, 'Tour Bahía de La Concha y Monte Urgull'),
+(10, 'San Sebastián', 'Bilbao', '2026-09-12 09:00:00', '2026-09-12 13:00:00', 6, 6, 'Excursión Bilbao - Guggenheim y Casco Viejo'),
+(10, 'Bilbao', 'Santander', '2026-09-13 09:00:00', '2026-09-13 14:00:00', 6, 6, 'Ruta costera a Santander'),
+(10, 'Santander', 'Santander', '2026-09-14 09:00:00', '2026-09-14 14:00:00', 6, 6, 'Tour Santander - Peninsula de la Magdalena'),
+(10, 'Santander', 'Madrid', '2026-09-17 06:00:00', '2026-09-17 16:00:00', 6, 6, 'Regreso final'),
+
+(11, 'Madrid', 'Bilbao', '2026-10-05 08:00:00', '2026-10-05 17:00:00', 6, 6, 'Trayecto Bilbao'),
+(11, 'Bilbao', 'Bilbao', '2026-10-06 09:00:00', '2026-10-06 14:00:00', 6, 6, 'Tour Guggenheim y Museo de Bellas Artes'),
+(11, 'Bilbao', 'San Sebastián', '2026-10-07 09:00:00', '2026-10-07 14:00:00', 6, 6, 'Excursión San Sebastián - Gastronomía'),
+(11, 'Bilbao', 'Madrid', '2026-10-10 07:00:00', '2026-10-10 16:00:00', 6, 6, 'Regreso'),
+
+(12, 'Madrid', 'Palma de Mallorca', '2026-07-20 06:00:00', '2026-07-20 08:00:00', 8, 8, 'Vuelo Madrid-Mallorca (traslado bus)'),
+(12, 'Palma', 'Palma', '2026-07-21 09:00:00', '2026-07-21 14:00:00', 8, 8, 'Tour Palma - Catedral y Almudaina'),
+(12, 'Palma', 'Valldemossa', '2026-07-22 09:00:00', '2026-07-22 14:00:00', 8, 8, 'Excursión Valldemossa y Deià'),
+(12, 'Palma', 'Menorca', '2026-07-24 08:00:00', '2026-07-24 12:00:00', 8, 8, 'Traslado a Menorca - Ferry'),
+(12, 'Menorca', 'Menorca', '2026-07-25 09:00:00', '2026-07-25 14:00:00', 8, 8, 'Tour Menorca - Calas y Faro'),
+(12, 'Menorca', 'Palma', '2026-07-26 14:00:00', '2026-07-26 18:00:00', 8, 8, 'Regreso a Palma'),
+(12, 'Palma', 'Madrid', '2026-07-27 08:00:00', '2026-07-27 10:00:00', 8, 8, 'Regreso final'),
+
+(13, 'Madrid', 'Lanzarote', '2026-11-01 06:00:00', '2026-11-01 09:00:00', 9, 9, 'Vuelo a Lanzarote'),
+(13, 'Lanzarote', 'Tinajo', '2026-11-02 09:00:00', '2026-11-02 14:00:00', 9, 9, 'Excursión Timanfaya - Lagos de fuego'),
+(13, 'Lanzarote', 'Arrecife', '2026-11-03 09:00:00', '2026-11-03 14:00:00', 9, 9, 'Tour Arrecife - Castillo de San Gabriel'),
+(13, 'Lanzarote', 'La Geria', '2026-11-04 10:00:00', '2026-11-04 15:00:00', 9, 9, 'Ruta vinícola - Bodegas火山'),
+(13, 'Lanzarote', 'Costa Teguise', '2026-11-05 09:00:00', '2026-11-05 18:00:00', 9, 9, 'Día libre en Costa Teguise'),
+(13, 'Lanzarote', 'Madrid', '2026-11-08 07:00:00', '2026-11-08 10:00:00', 9, 9, 'Regreso'),
+
+(14, 'Madrid', 'Santiago de Compostela', '2026-06-25 08:00:00', '2026-06-25 17:00:00', 9, 9, 'Ruta hacia Galicia'),
+(14, 'Santiago', 'Santiago', '2026-06-26 09:00:00', '2026-06-26 14:00:00', 9, 9, 'Tour Catedral y Ciudad Vieja'),
+(14, 'Santiago', 'Ribeira Sacra', '2026-06-27 08:00:00', '2026-06-27 15:00:00', 9, 9, 'Excursión Ribeira Sacra - Cañones del Sil'),
+(14, 'Santiago', 'Santiago', '2026-06-28 09:00:00', '2026-06-28 14:00:00', 9, 9, 'Día libre - Museo de las Peregrinaciones'),
+(14, 'Santiago', 'Madrid', '2026-06-30 07:00:00', '2026-06-30 16:00:00', 9, 9, 'Regreso'),
+
+(15, 'Madrid', 'Pamplona', '2026-08-20 08:00:00', '2026-08-20 16:00:00', 4, 4, 'Trayecto a Pamplona'),
+(15, 'Pamplona', 'Pamplona', '2026-08-21 09:00:00', '2026-08-21 14:00:00', 4, 4, 'Tour Casco Antiguo y Running of the Bulls'),
+(15, 'Pamplona', 'Estella', '2026-08-22 09:00:00', '2026-08-22 15:00:00', 4, 4, 'Ruta del Camino - Puente la Reina y Estella'),
+(15, 'Pamplona', 'Madrid', '2026-08-25 07:00:00', '2026-08-25 15:00:00', 4, 4, 'Regreso'),
+
+(16, 'Madrid', 'Ávila', '2026-09-15 08:00:00', '2026-09-15 12:00:00', 10, 10, 'Trayecto Ávila'),
+(16, 'Ávila', 'Ávila', '2026-09-16 09:00:00', '2026-09-16 13:00:00', 10, 10, 'Tour Muralla y Catedral'),
+(16, 'Ávila', 'Salamanca', '2026-09-17 09:00:00', '2026-09-17 13:00:00', 10, 10, 'Ruta hacia Salamanca'),
+(16, 'Salamanca', 'Salamanca', '2026-09-18 09:00:00', '2026-09-18 14:00:00', 10, 10, 'Tour Plaza Mayor y Universidad'),
+(16, 'Salamanca', 'Madrid', '2026-09-20 08:00:00', '2026-09-20 12:00:00', 10, 10, 'Regreso'),
+
+(17, 'Madrid', 'Zaragoza', '2026-07-10 09:00:00', '2026-07-10 16:00:00', 5, 5, 'Trayecto Zaragoza'),
+(17, 'Zaragoza', 'Zaragoza', '2026-07-11 09:00:00', '2026-07-11 14:00:00', 5, 5, 'Tour Basilica del Pilar y Aljafería'),
+(17, 'Zaragoza', 'Tarazona', '2026-07-12 10:00:00', '2026-07-12 15:00:00', 5, 5, 'Excursión Tarazona y Moncayo'),
+(17, 'Zaragoza', 'Madrid', '2026-07-14 08:00:00', '2026-07-14 15:00:00', 5, 5, 'Regreso'),
+
+(18, 'Madrid', 'Ronda', '2026-10-10 08:00:00', '2026-10-10 14:00:00', 7, 7, 'Trayecto Ronda'),
+(18, 'Ronda', 'Ronda', '2026-10-11 09:00:00', '2026-10-11 14:00:00', 7, 7, 'Tour Tajo de Ronda y Puentes'),
+(18, 'Ronda', 'Grazalema', '2026-10-12 09:00:00', '2026-10-12 15:00:00', 7, 7, 'Excursión Grazalema - Pinsapar y senderismo'),
+(18, 'Ronda', 'Arcos de la Frontera', '2026-10-13 10:00:00', '2026-10-13 15:00:00', 7, 7, 'Visita Villages blancos - Arcos'),
+(18, 'Ronda', 'Madrid', '2026-10-14 08:00:00', '2026-10-14 14:00:00', 7, 7, 'Regreso'),
+
+(19, 'Madrid', 'Oviedo', '2026-09-25 08:00:00', '2026-09-25 17:00:00', 6, 6, 'Ruta hacia Asturias'),
+(19, 'Oviedo', 'Oviedo', '2026-09-26 09:00:00', '2026-09-26 14:00:00', 6, 6, 'Tour Catedral y Museo de Bellas Artes'),
+(19, 'Oviedo', 'Cangas de Onís', '2026-09-27 09:00:00', '2026-09-27 15:00:00', 6, 6, 'Excursión Covadonga y Lagos de Enol'),
+(19, 'Oviedo', 'Gijón', '2026-09-28 09:00:00', '2026-09-28 14:00:00', 6, 6, 'Tour Gijón - Universidad y Cena-mar'),
+(19, 'Oviedo', 'Madrid', '2026-09-30 07:00:00', '2026-09-30 16:00:00', 6, 6, 'Regreso'),
+
+(20, 'Madrid', 'Valencia', '2026-03-15 08:00:00', '2026-03-15 16:00:00', 5, 5, 'Trayecto Fallas'),
+(20, 'Valencia', 'Valencia', '2026-03-16 09:00:00', '2026-03-16 18:00:00', 5, 5, 'Ninots y monumentos fallidos'),
+(20, 'Valencia', 'Valencia', '2026-03-17 09:00:00', '2026-03-17 14:00:00', 5, 5, 'Mascletà y plantà'),
+(20, 'Valencia', 'Albufera', '2026-03-18 10:00:00', '2026-03-18 14:00:00', 5, 5, 'Excursión Albufera - La tomato'),
+(20, 'Valencia', 'Madrid', '2026-03-20 07:00:00', '2026-03-20 15:00:00', 5, 5, 'Regreso'),
+
+(21, 'Madrid', 'Barcelona', '2026-05-01 08:00:00', '2026-05-01 18:00:00', 2, 2, 'Trayecto a Barcelona'),
+(21, 'Barcelona', 'Barcelona', '2026-05-02 09:00:00', '2026-05-02 14:00:00', 2, 2, 'Sagrada Familia y Casa Batlló'),
+(21, 'Barcelona', 'Barcelona', '2026-05-03 09:00:00', '2026-05-03 14:00:00', 2, 2, 'Park Güell y Passeig de Gràcia'),
+(21, 'Barcelona', 'Montserrat', '2026-05-04 09:00:00', '2026-05-04 14:00:00', 2, 2, 'Excursión Montserrat'),
+(21, 'Barcelona', 'Madrid', '2026-05-05 07:00:00', '2026-05-05 17:00:00', 2, 2, 'Regreso'),
+
+(22, 'Barcelona', 'Madrid', '2026-04-10 08:00:00', '2026-04-10 18:00:00', 1, 1, 'Trayecto hacia Madrid'),
+(22, 'Madrid', 'Madrid', '2026-04-11 09:00:00', '2026-04-11 14:00:00', 1, 1, 'Tour Plaza Mayor y Madrid de los Austrias'),
+(22, 'Madrid', 'Madrid', '2026-04-12 09:00:00', '2026-04-12 14:00:00', 1, 1, 'Palacio Real y Almudena'),
+(22, 'Madrid', 'Madrid', '2026-04-13 10:00:00', '2026-04-13 15:00:00', 1, 1, 'Día libre - Shopping Gran Vía'),
+(22, 'Madrid', 'Barcelona', '2026-04-14 07:00:00', '2026-04-14 17:00:00', 1, 1, 'Regreso'),
+
+(23, 'Madrid', 'Sevilla', '2026-05-15 08:00:00', '2026-05-15 18:00:00', 3, 3, 'Trayecto Sevilla'),
+(23, 'Sevilla', 'Sevilla', '2026-05-16 09:00:00', '2026-05-16 14:00:00', 3, 3, 'Tour Triana - Ceramistas y Alfarería'),
+(23, 'Sevilla', 'Sevilla', '2026-05-17 09:00:00', '2026-05-17 14:00:00', 3, 3, 'Barrio del Arenal - Plaza de Toros'),
+(23, 'Sevilla', 'Itálica', '2026-05-18 09:00:00', '2026-05-18 14:00:00', 3, 3, 'Excursión Itálica - Ruinas romanas'),
+(23, 'Sevilla', 'Madrid', '2026-05-19 07:00:00', '2026-05-19 17:00:00', 3, 3, 'Regreso'),
+
+(24, 'Barcelona', 'Granada', '2026-06-01 08:00:00', '2026-06-01 16:00:00', 3, 3, 'Ruta hacia Granada'),
+(24, 'Granada', 'Granada', '2026-06-02 09:00:00', '2026-06-02 13:00:00', 3, 3, 'Alhambra - Generalife y Jardines'),
+(24, 'Granada', 'Albaicín', '2026-06-03 17:00:00', '2026-06-03 21:00:00', 3, 3, 'Atardecer en Albaicín - Cueva flamenco'),
+(24, 'Granada', 'Sacromonte', '2026-06-04 09:00:00', '2026-06-04 14:00:00', 3, 3, 'Cuevas del Sacromonte - Historia gitana'),
+(24, 'Granada', 'Barcelona', '2026-06-05 07:00:00', '2026-06-05 15:00:00', 3, 3, 'Regreso'),
+
+(25, 'Barcelona', 'San Sebastián', '2026-07-25 08:00:00', '2026-07-25 17:00:00', 6, 6, 'Trayecto San Sebastián'),
+(25, 'San Sebastián', 'San Sebastián', '2026-07-26 09:00:00', '2026-07-26 14:00:00', 6, 6, 'Playa La Concha y Monte Igueldo'),
+(25, 'San Sebastián', 'San Sebastián', '2026-07-27 09:00:00', '2026-07-27 14:00:00', 6, 6, 'Casco Viejo - Pintxos y gastronomía'),
+(25, 'San Sebastián', 'Fuenterrabía', '2026-07-28 09:00:00', '2026-07-28 15:00:00', 6, 6, 'Excursión Fuenterrabía - Pasajes'),
+(25, 'San Sebastián', 'Barcelona', '2026-07-30 07:00:00', '2026-07-30 16:00:00', 6, 6, 'Regreso');
+
+INSERT INTO bookings (booking_id, bought_date, type_board, is_group, total_price, travels_id, employee_id) VALUES
+(1, '2026-05-15 10:30:00', 'FULL_BOARD', true, 2650.00, 1, 2),
+(2, '2026-05-16 11:45:00', 'HALF_BOARD', false, 1950.00, 2, 3),
+(3, '2026-05-17 09:20:00', 'FULL_BOARD', true, 1450.00, 5, 2),
+(4, '2026-05-18 14:00:00', 'HALF_BOARD', false, 1600.00, 4, 5),
+(5, '2026-05-19 16:30:00', 'FULL_BOARD', true, 1700.00, 6, 1),
+(6, '2026-05-20 10:00:00', 'HALF_BOARD', false, 2500.00, 12, 4),
+(7, '2026-05-21 12:15:00', 'FULL_BOARD', true, 2700.00, 13, 3),
+(8, '2026-05-22 08:45:00', 'HALF_BOARD', false, 1800.00, 9, 2),
+(9, '2026-05-23 15:30:00', 'FULL_BOARD', true, 2200.00, 10, 6),
+(10, '2026-05-24 11:00:00', 'HALF_BOARD', false, 2400.00, 11, 1),
+(11, '2026-05-25 13:20:00', 'FULL_BOARD', true, 1900.00, 14, 5),
+(12, '2026-05-26 09:50:00', 'HALF_BOARD', false, 1350.00, 7, 3),
+(13, '2026-05-27 14:40:00', 'FULL_BOARD', true, 1550.00, 15, 2),
+(14, '2026-05-28 10:30:00', 'HALF_BOARD', false, 1650.00, 16, 4),
+(15, '2026-05-29 16:00:00', 'FULL_BOARD', true, 1400.00, 17, 1);
+
+INSERT INTO customers_bookings (booking_id, customer_id) VALUES
+(1, 1),
+(1, 2),
+(2, 3),
+(3, 4),
+(3, 5),
+(4, 6),
+(4, 7),
+(5, 8),
+(6, 9),
+(6, 10),
+(7, 11),
+(8, 12),
+(8, 13),
+(9, 14),
+(9, 1),
+(10, 2),
+(10, 3),
+(11, 4),
+(11, 5),
+(12, 6),
+(13, 7),
+(13, 8),
+(14, 9),
+(14, 10),
+(15, 11),
+(15, 12);

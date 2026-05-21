@@ -95,6 +95,8 @@ En el primer arranque, `DataInitializer` crea automáticamente 4 empleados semil
 | sofia@nomada.es | EMPLOYEE |
 | david@nomada.es | EMPLOYEE |
 
+Además, el script de datos para pruebas está en `src/main/resources/db/migration/database.sql` y se ejecuta al iniciar la aplicación.
+
 ---
 
 ## Estructura del proyecto
